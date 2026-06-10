@@ -178,3 +178,28 @@ h1 {
   max-width: 320px;
   width: 100%;
 }
+
+@media (max-height: 600px) {
+  .board-container {
+    padding: 4px 0;
+  }
+  .game-hud {
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+}
+
+@media (min-width: 500px) {
+  .app-container {
+    display: flex;
+    justify-content: center;
+  }
+  .screen {
+    max-width: 480px;
+    width: 100%;
+  }
+}
