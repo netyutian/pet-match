@@ -1,4 +1,4 @@
-import { PET_DATA, PET_COST_FRAGMENTS, PET_CLOTHES } from '../constants';
+import { PET_DATA, PET_COST_FRAGMENTS } from '../constants';
 import type { PetInstance } from '../types';
 
 interface PetSaveData {
