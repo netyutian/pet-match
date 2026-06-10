@@ -76,3 +76,27 @@ h1 {
 .board-cell {
   aspect-ratio: 1;
 }
+
+.game-hud {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 400px;
+  padding: 12px;
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.hud-item {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6B4F4F;
+}
+
+#back-btn {
+  margin-top: 16px;
+  background: #D3D3D3;
+  color: #4A4A4A;
+}
