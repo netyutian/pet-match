@@ -36,4 +36,13 @@ describe('MatchEngine', () => {
     const matches = MatchEngine.findMatches(grid);
     expect(matches.length).toBe(0);
   });
+
+  it('detects horizontal 4-match and returns special info', () => {
+    const grid: (Cell | null)[][] = [
+      [makeCell('cat'), makeCell('cat'), makeCell('cat'), makeCell('cat')],
+    ];
+    const specials = MatchEngine.findSpecials(grid);
+    expect(specials.length).toBe(1);
+    expect(specials[0].type).toBe('line_v');
+  });
 });
