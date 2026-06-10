@@ -59,3 +59,20 @@ h1 {
   color: #6B4F4F;
   text-align: center;
 }
+
+.board-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.board-grid {
+  background: #FFF0E0;
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.board-cell {
+  aspect-ratio: 1;
+}
