@@ -29,6 +29,16 @@ export class LevelSelectScreen {
     this.container.appendChild(this.levelMap);
 
     this.renderButtons();
+
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '返回';
+    backBtn.style.marginTop = '16px';
+    backBtn.style.background = '#D3D3D3';
+    backBtn.style.color = '#4A4A4A';
+    backBtn.addEventListener('click', () => {
+      this.onSelect(0);
+    });
+    this.container.appendChild(backBtn);
   }
 
   private renderButtons(): void {

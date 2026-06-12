@@ -92,6 +92,13 @@ class GameApp {
     title.textContent = 'Pet Match';
     menu.appendChild(title);
 
+    const petIcon = document.createElement('div');
+    petIcon.textContent = '🐱';
+    petIcon.style.fontSize = '80px';
+    petIcon.style.marginBottom = '24px';
+    petIcon.style.textAlign = 'center';
+    menu.appendChild(petIcon);
+
     const startBtn = document.createElement('button');
     startBtn.textContent = '开始游戏';
     startBtn.addEventListener('click', () => {
@@ -122,6 +129,11 @@ class GameApp {
   }
 
   private startLevel(levelId: number): void {
+    if (levelId <= 0) {
+      this.screenMgr.show('menu');
+      return;
+    }
+
     const gameScreen = new GameScreen(levelId, (result) => {
       if (result.won) {
         const prevStars = this.saveData.levelStars[levelId] ?? 0;

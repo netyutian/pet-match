@@ -29,7 +29,6 @@ body {
   display: none;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: 16px;
   overflow-y: auto;
 }
@@ -60,6 +59,7 @@ h1 {
   text-align: center;
 }
 
+/* Board */
 .board-container {
   width: 100%;
   display: flex;
@@ -75,8 +75,40 @@ h1 {
 
 .board-cell {
   aspect-ratio: 1;
+  border-radius: 8px;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  user-select: none;
+  border: 3px solid transparent;
 }
 
+/* Elimination animation */
+@keyframes eliminate {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+.board-cell.eliminating {
+  animation: eliminate 0.3s ease forwards;
+  z-index: 2;
+}
+
+/* Fall-in animation */
+@keyframes fallIn {
+  0% { transform: translateY(-60px); opacity: 0; }
+  60% { transform: translateY(8px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.board-cell.falling {
+  animation: fallIn 0.35s ease-out forwards;
+}
+
+/* Game HUD */
 .game-hud {
   display: flex;
   justify-content: space-around;
@@ -101,6 +133,7 @@ h1 {
   color: #4A4A4A;
 }
 
+/* Level select */
 .level-map {
   width: 100%;
   max-width: 320px;
@@ -129,6 +162,7 @@ h1 {
   bottom: 4px;
 }
 
+/* Home screen */
 .room-view {
   width: 100%;
   max-width: 400px;
@@ -156,6 +190,7 @@ h1 {
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
+/* Modal */
 .modal {
   position: fixed;
   inset: 0;
@@ -179,6 +214,149 @@ h1 {
   width: 100%;
 }
 
+/* Elimination animation */
+@keyframes eliminate {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.7; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+.board-cell.eliminating {
+  animation: eliminate 0.3s ease forwards;
+  z-index: 10;
+}
+
+/* Falling animation */
+@keyframes fallIn {
+  from { transform: translateY(-40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.board-cell.falling {
+  animation: fallIn 0.25s ease;
+}
+
+/* Victory modal */
+.victory-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.victory-card {
+  background: white;
+  padding: 32px 24px;
+  border-radius: 20px;
+  text-align: center;
+  max-width: 320px;
+  width: 85%;
+  animation: popIn 0.4s ease;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.victory-stars {
+  font-size: 36px;
+  margin: 12px 0;
+}
+
+/* Hint animation */
+@keyframes hintPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(255,143,163,0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(255,143,163,0.7); }
+}
+
+.board-cell.hint {
+  animation: hintPulse 1s ease infinite;
+  z-index: 5;
+}
+
+/* Victory modal */
+.victory-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.3s ease;
+}
+
+.victory-modal > div {
+  background: #FFF8F0;
+  padding: 32px 24px;
+  border-radius: 24px;
+  text-align: center;
+  max-width: 340px;
+  width: 90%;
+  animation: popIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.6); opacity: 0; }
+  80% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.victory-stars {
+  font-size: 48px;
+  margin: 16px 0;
+}
+
+/* Hint highlight */
+@keyframes hintPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(255, 143, 163, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 143, 163, 0.8); }
+}
+
+.board-cell.hint {
+  animation: hintPulse 1s ease infinite;
+  z-index: 3;
+}
+
+/* Target animal highlight */
+@keyframes targetGlow {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 2px rgba(255, 200, 100, 0.4); }
+  50% { transform: scale(1.06); box-shadow: 0 0 0 5px rgba(255, 200, 100, 0.8); }
+}
+
+.board-cell.target {
+  animation: targetGlow 1.2s ease infinite;
+  z-index: 2;
+}
+
+/* Floating text on match */
+.floating-text {
+  position: absolute;
+  pointer-events: none;
+  font-size: 16px;
+  font-weight: 700;
+  color: #FF6B6B;
+  z-index: 20;
+  animation: floatUp 0.8s ease forwards;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+}
+
+/* Responsive */
 @media (max-height: 600px) {
   .board-container {
     padding: 4px 0;

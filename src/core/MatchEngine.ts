@@ -73,6 +73,42 @@ export class MatchEngine {
     return this.findMatches(grid).length > 0;
   }
 
+  static findHint(grid: (Cell | null)[][]): [Position, Position] | null {
+    const directions = [
+      { dr: 0, dc: 1 },
+      { dr: 1, dc: 0 },
+    ];
+
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        const pos1: Position = { row: r, col: c };
+        for (const d of directions) {
+          const nr = r + d.dr;
+          const nc = c + d.dc;
+          if (nr >= BOARD_SIZE || nc >= BOARD_SIZE) continue;
+
+          const pos2: Position = { row: nr, col: nc };
+          // Virtual swap and test
+          const temp = grid[r][c];
+          grid[r][c] = grid[nr][nc];
+          grid[nr][nc] = temp;
+
+          const hasMatch = this.hasMatch(grid);
+
+          // Swap back
+          grid[nr][nc] = grid[r][c];
+          grid[r][c] = temp;
+
+          if (hasMatch) {
+            return [pos1, pos2];
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   static findSpecials(grid: (Cell | null)[][]): SpecialSpawn[] {
     const specials: SpecialSpawn[] = [];
 

@@ -117,4 +117,8 @@ export class Board {
   getGrid(): (Cell | null)[][] {
     return this.grid.map(row => [...row]);
   }
+
+  shuffle(): void {
+    this.grid = this.createGrid();
+  }
 }

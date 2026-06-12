@@ -87,4 +87,8 @@ export class GameState {
   getCollectedCount(element: ElementType): number {
     return this.collectedElements[element] || 0;
   }
+
+  forceWin(): void {
+    this.status = 'won';
+  }
 }

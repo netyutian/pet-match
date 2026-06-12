@@ -3,26 +3,29 @@ import { MatchEngine } from '../core/MatchEngine';
 import { GameState } from '../core/GameState';
 import { getLevel } from '../core/LevelConfig';
 import { BoardRenderer } from './BoardRenderer';
+import { SoundManager } from '../systems/SoundManager';
+import { ELEMENT_EMOJI } from '../constants';
 import type { Position, LevelConfig } from '../types';
 
 export class GameScreen {
   private container: HTMLElement;
-  private levelId: number;
-  private onComplete: (result: { won: boolean; stars: number; levelId: number }) => void;
   private board: Board;
   private gameState: GameState;
   private renderer: BoardRenderer;
+  private sound: SoundManager;
   private level: LevelConfig;
+  private onComplete: (result: { won: boolean; stars: number; levelId: number }) => void;
 
   private scoreEl!: HTMLElement;
   private movesEl!: HTMLElement;
   private goalEl!: HTMLElement;
+  private isAnimating = false;
+  private hintTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     levelId: number,
     onComplete: (result: { won: boolean; stars: number; levelId: number }) => void
   ) {
-    this.levelId = levelId;
     this.onComplete = onComplete;
 
     const level = getLevel(levelId);
@@ -36,6 +39,7 @@ export class GameScreen {
 
     this.board = new Board();
     this.gameState = new GameState(level);
+    this.sound = new SoundManager();
 
     const hud = this.createHUD();
     this.container.appendChild(hud);
@@ -46,17 +50,23 @@ export class GameScreen {
 
     this.renderer = new BoardRenderer(boardArea);
     this.renderer.setBoard(this.board);
-    this.renderer.setSwapHandler(this.handleSwap.bind(this));
+    this.renderer.setSwapHandler((from, to) => this.handleSwap(from, to));
 
     const backBtn = document.createElement('button');
     backBtn.id = 'back-btn';
     backBtn.textContent = '返回';
     backBtn.addEventListener('click', () => {
-      this.onComplete({ won: false, stars: 0, levelId: this.levelId });
+      this.onComplete({ won: false, stars: 0, levelId: this.level.id });
     });
     this.container.appendChild(backBtn);
 
     this.updateHUD();
+    this.highlightTargets();
+    this.startHintTimer();
+  }
+
+  getElement(): HTMLElement {
+    return this.container;
   }
 
   private createHUD(): HTMLElement {
@@ -79,9 +89,9 @@ export class GameScreen {
   }
 
   private updateHUD(): void {
-    this.scoreEl.textContent = `分数: ${this.gameState.getScore()}`;
+    this.scoreEl.textContent = this.formatGoal();
     this.movesEl.textContent = `步数: ${this.gameState.getMovesLeft()}`;
-    this.goalEl.textContent = this.formatGoal();
+    this.goalEl.textContent = `分数: ${this.gameState.getScore()}`;
   }
 
   private formatGoal(): string {
@@ -91,7 +101,8 @@ export class GameScreen {
     }
     if (goal.type === 'collect' && goal.element) {
       const collected = this.gameState.getCollectedCount(goal.element);
-      return `收集${collected}/${goal.target}个${goal.element}`;
+      const emoji = ELEMENT_EMOJI[goal.element];
+      return `${emoji} ${collected}/${goal.target}`;
     }
     if (goal.type === 'clear') {
       return `清除${goal.target}个障碍`;
@@ -99,10 +110,12 @@ export class GameScreen {
     return '';
   }
 
-  private handleSwap(from: Position, to: Position): void {
-    if (this.gameState.getStatus() !== 'playing') {
+  private async handleSwap(from: Position, to: Position): Promise<void> {
+    if (this.isAnimating || this.gameState.getStatus() !== 'playing') {
       return;
     }
+
+    this.resetHintTimer();
 
     const dr = Math.abs(from.row - to.row);
     const dc = Math.abs(from.col - to.col);
@@ -111,55 +124,206 @@ export class GameScreen {
     }
 
     this.board.swap(from, to);
+    this.renderer.updateFromBoard();
 
     if (!MatchEngine.hasMatch(this.board.getGrid())) {
+      // Invalid swap: animate back
+      await this.delay(200);
+      this.sound.playSwapBack();
       this.board.swap(from, to);
       this.renderer.updateFromBoard();
       return;
     }
 
+    this.isAnimating = true;
     this.gameState.useMove();
-    this.processMatches();
+    const easterEgg = await this.processMatches();
     this.updateHUD();
+    this.isAnimating = false;
+
+    if (easterEgg) {
+      await this.delay(500);
+      this.showEasterEggModal();
+      return;
+    }
 
     if (this.gameState.getStatus() !== 'playing') {
-      setTimeout(() => {
-        this.onComplete({
-          won: this.gameState.getStatus() === 'won',
-          stars: this.gameState.getStars(),
-          levelId: this.levelId,
-        });
-      }, 500);
+      await this.delay(400);
+      this.showVictoryOrDefeat();
     }
   }
 
-  private processMatches(): void {
+  private async processMatches(): Promise<boolean> {
     let totalScore = 0;
 
     while (MatchEngine.hasMatch(this.board.getGrid())) {
       const matches = MatchEngine.findMatches(this.board.getGrid());
+      const specials = MatchEngine.findSpecials(this.board.getGrid());
+      const allPositions = matches.flatMap(m => m.positions);
 
+      // Easter egg: 5-match or special triggers instant win
+      if (matches.some(m => m.positions.length >= 5) || specials.length > 0) {
+        this.renderer.markEliminating(allPositions);
+        await this.delay(350);
+        this.gameState.forceWin();
+        this.showEasterEggModal();
+        return true;
+      }
+
+      // 1. Show elimination animation
+      this.sound.playMatch();
+      this.renderer.markEliminating(allPositions);
+      await this.delay(350);
+
+      // 2. Actually eliminate
+      for (const pos of allPositions) {
+        const cell = this.board.getCell(pos.row, pos.col);
+        if (cell?.obstacle) {
+          this.gameState.recordObstacleCleared();
+        }
+        this.board.setCell(pos.row, pos.col, null);
+      }
+
+      // 3. Score and floating text
+      const goalElement = this.level.goal.element;
       for (const match of matches) {
         totalScore += match.positions.length * 10;
         this.gameState.recordMatch(match.element, match.positions.length);
-
-        for (const pos of match.positions) {
-          const cell = this.board.getCell(pos.row, pos.col);
-          if (cell?.obstacle) {
-            this.gameState.recordObstacleCleared();
-          }
-          this.board.setCell(pos.row, pos.col, null);
+        if (goalElement && match.element === goalElement && match.positions.length > 0) {
+          const emoji = ELEMENT_EMOJI[goalElement];
+          const centerPos = match.positions[Math.floor(match.positions.length / 2)];
+          this.renderer.showFloatingText(centerPos, `${emoji} +${match.positions.length}`);
         }
       }
 
-      this.board.applyGravity();
+      // 4. Gravity and render
+      const newPositions = this.board.applyGravity();
+      this.renderer.updateFromBoard();
+
+      // 5. Falling animation for new cells
+      this.renderer.markFalling(newPositions);
+      await this.delay(400);
+
+      this.renderer.clearAnimations();
     }
 
     this.gameState.addScore(totalScore);
     this.renderer.updateFromBoard();
+    return false;
   }
 
-  getElement(): HTMLElement {
-    return this.container;
+  private showVictoryOrDefeat(): void {
+    const won = this.gameState.getStatus() === 'won';
+    const stars = this.gameState.getStars();
+
+    if (won) {
+      this.sound.playWin();
+      this.showVictoryModal(stars);
+    } else {
+      this.onComplete({ won: false, stars: 0, levelId: this.level.id });
+    }
+  }
+
+  private showEasterEggModal(): void {
+    const overlay = document.createElement('div');
+    overlay.className = 'victory-modal';
+
+    const card = document.createElement('div');
+
+    const title = document.createElement('h2');
+    title.textContent = '彩蛋触发！';
+    title.style.color = '#FF6B6B';
+    title.style.margin = '0 0 8px';
+    card.appendChild(title);
+
+    const sub = document.createElement('div');
+    sub.textContent = '直接通关！';
+    sub.style.color = '#888';
+    sub.style.marginBottom = '16px';
+    card.appendChild(sub);
+
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = '下一关';
+    nextBtn.addEventListener('click', () => {
+      this.onComplete({ won: true, stars: 3, levelId: this.level.id });
+    });
+    card.appendChild(nextBtn);
+
+    overlay.appendChild(card);
+    this.container.appendChild(overlay);
+  }
+
+  private showVictoryModal(stars: number): void {
+    const overlay = document.createElement('div');
+    overlay.className = 'victory-modal';
+
+    const card = document.createElement('div');
+
+    const title = document.createElement('h2');
+    title.textContent = '恭喜通关！';
+    title.style.color = '#6B4F4F';
+    title.style.margin = '0 0 8px';
+    card.appendChild(title);
+
+    const starDisplay = document.createElement('div');
+    starDisplay.className = 'victory-stars';
+    starDisplay.textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+    card.appendChild(starDisplay);
+
+    const scoreInfo = document.createElement('div');
+    scoreInfo.textContent = `得分: ${this.gameState.getScore()}`;
+    scoreInfo.style.color = '#888';
+    scoreInfo.style.marginBottom = '16px';
+    card.appendChild(scoreInfo);
+
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = '下一关';
+    nextBtn.addEventListener('click', () => {
+      this.onComplete({ won: true, stars, levelId: this.level.id });
+    });
+    card.appendChild(nextBtn);
+
+    overlay.appendChild(card);
+    this.container.appendChild(overlay);
+  }
+
+  private highlightTargets(): void {
+    const goal = this.level.goal;
+    if (goal.type !== 'collect' || !goal.element) return;
+    const targets: Position[] = [];
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const cell = this.board.getCell(r, c);
+        if (cell?.element === goal.element) {
+          targets.push({ row: r, col: c });
+        }
+      }
+    }
+    this.renderer.markTarget(targets);
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private startHintTimer(): void {
+    this.hintTimer = setTimeout(() => this.showHint(), 4000);
+  }
+
+  private resetHintTimer(): void {
+    if (this.hintTimer) {
+      clearTimeout(this.hintTimer);
+      this.hintTimer = null;
+    }
+    this.renderer.clearHint();
+    this.startHintTimer();
+  }
+
+  private showHint(): void {
+    if (this.gameState.getStatus() !== 'playing') return;
+    const hint = MatchEngine.findHint(this.board.getGrid());
+    if (hint) {
+      this.renderer.markHint([hint[0], hint[1]]);
+    }
   }
 }
