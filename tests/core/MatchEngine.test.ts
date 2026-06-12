@@ -9,8 +9,8 @@ function makeCell(element: string): Cell {
 describe('MatchEngine', () => {
   it('finds horizontal match of 3', () => {
     const grid: (Cell | null)[][] = [
-      [makeCell('cat'), makeCell('cat'), makeCell('cat'), makeCell('dog')],
-      [makeCell('dog'), makeCell('bear'), makeCell('bird'), makeCell('hamster')],
+      [makeCell('rat'), makeCell('rat'), makeCell('rat'), makeCell('ox')],
+      [makeCell('ox'), makeCell('tiger'), makeCell('rabbit'), makeCell('dragon')],
     ];
     const matches = MatchEngine.findMatches(grid);
     expect(matches.length).toBe(1);
@@ -19,9 +19,9 @@ describe('MatchEngine', () => {
 
   it('finds vertical match of 3', () => {
     const grid: (Cell | null)[][] = [
-      [makeCell('cat'), makeCell('dog')],
-      [makeCell('cat'), makeCell('bear')],
-      [makeCell('cat'), makeCell('bird')],
+      [makeCell('rat'), makeCell('ox')],
+      [makeCell('rat'), makeCell('tiger')],
+      [makeCell('rat'), makeCell('rabbit')],
     ];
     const matches = MatchEngine.findMatches(grid);
     expect(matches.length).toBe(1);
@@ -30,8 +30,8 @@ describe('MatchEngine', () => {
 
   it('returns empty when no matches', () => {
     const grid: (Cell | null)[][] = [
-      [makeCell('cat'), makeCell('dog')],
-      [makeCell('bear'), makeCell('bird')],
+      [makeCell('rat'), makeCell('ox')],
+      [makeCell('tiger'), makeCell('rabbit')],
     ];
     const matches = MatchEngine.findMatches(grid);
     expect(matches.length).toBe(0);
@@ -39,7 +39,7 @@ describe('MatchEngine', () => {
 
   it('detects horizontal 4-match and returns special info', () => {
     const grid: (Cell | null)[][] = [
-      [makeCell('cat'), makeCell('cat'), makeCell('cat'), makeCell('cat')],
+      [makeCell('rat'), makeCell('rat'), makeCell('rat'), makeCell('rat')],
     ];
     const specials = MatchEngine.findSpecials(grid);
     expect(specials.length).toBe(1);
@@ -48,9 +48,9 @@ describe('MatchEngine', () => {
 
   it('findHint returns null when no valid swap', () => {
     const grid: (Cell | null)[][] = [
-      [makeCell('cat'), makeCell('dog'), makeCell('bear')],
-      [makeCell('bird'), makeCell('hamster'), makeCell('cat')],
-      [makeCell('dog'), makeCell('bear'), makeCell('bird')],
+      [makeCell('rat'), makeCell('ox'), makeCell('tiger')],
+      [makeCell('rabbit'), makeCell('dragon'), makeCell('rat')],
+      [makeCell('ox'), makeCell('tiger'), makeCell('rabbit')],
     ];
     const hint = MatchEngine.findHint(grid);
     expect(hint).toBeNull();
