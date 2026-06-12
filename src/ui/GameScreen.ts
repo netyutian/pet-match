@@ -61,7 +61,6 @@ export class GameScreen {
     this.container.appendChild(backBtn);
 
     this.updateHUD();
-    this.highlightTargets();
     this.startHintTimer();
   }
 
@@ -381,7 +380,6 @@ export class GameScreen {
     } while (!MatchEngine.findHint(this.board.getGrid()) && attempts < 10);
 
     this.renderer.updateFromBoard();
-    this.highlightTargets();
 
     overlay.remove();
   }
