@@ -138,6 +138,15 @@ export class GameScreen {
     this.isAnimating = true;
     this.gameState.useMove();
     const easterEgg = await this.processMatches();
+
+    // Deadlock shuffle: if no valid moves, reshuffle automatically
+    if (!easterEgg && this.gameState.getStatus() === 'playing') {
+      const hint = MatchEngine.findHint(this.board.getGrid());
+      if (!hint) {
+        await this.performShuffle();
+      }
+    }
+
     this.updateHUD();
     this.isAnimating = false;
 
@@ -339,5 +348,40 @@ export class GameScreen {
     if (hint) {
       this.renderer.markHint([hint[0], hint[1]]);
     }
+  }
+
+  private async performShuffle(): Promise<void> {
+    // Show shuffle message
+    const overlay = document.createElement('div');
+    overlay.className = 'shuffle-overlay';
+    overlay.textContent = '无可用移动，重新洗牌...';
+    overlay.style.cssText = `
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      z-index: 100;
+      pointer-events: none;
+    `;
+    this.container.querySelector('.board-area')?.appendChild(overlay);
+
+    await this.delay(1000);
+
+    // Shuffle until solvable (max 10 attempts)
+    let attempts = 0;
+    do {
+      this.board.shuffle();
+      attempts++;
+    } while (!MatchEngine.findHint(this.board.getGrid()) && attempts < 10);
+
+    this.renderer.updateFromBoard();
+    this.highlightTargets();
+
+    overlay.remove();
   }
 }

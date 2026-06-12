@@ -381,3 +381,15 @@ h1 {
     width: 100%;
   }
 }
+
+/* Shuffle overlay */
+.shuffle-overlay {
+  animation: fadeInOut 1s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
