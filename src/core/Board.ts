@@ -4,20 +4,46 @@ import { BOARD_SIZE, ELEMENTS } from '../constants';
 export class Board {
   private grid: (Cell | null)[][];
   private preferredElement: string | undefined;
+  private activeElements: string[];
 
   constructor() {
+    this.activeElements = this.pickActiveElements();
     this.grid = this.createGrid();
   }
 
   setPreferredElement(element: string | undefined): void {
     this.preferredElement = element;
+    // Re-roll active elements to ensure preferred is included
+    this.activeElements = this.pickActiveElements();
+    this.grid = this.createGrid();
+  }
+
+  private pickActiveElements(): string[] {
+    const pool = [...ELEMENTS];
+    const selected: string[] = [];
+
+    // Ensure preferred element is included if set
+    if (this.preferredElement) {
+      const idx = pool.indexOf(this.preferredElement as any);
+      if (idx > -1) {
+        selected.push(pool.splice(idx, 1)[0]);
+      }
+    }
+
+    // Randomly pick remaining elements to reach 6 total
+    while (selected.length < 6 && pool.length > 0) {
+      const idx = Math.floor(Math.random() * pool.length);
+      selected.push(pool.splice(idx, 1)[0]);
+    }
+
+    return selected;
   }
 
   private pickElement(): string {
     if (this.preferredElement && Math.random() < 0.5) {
       return this.preferredElement;
     }
-    return ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
+    return this.activeElements[Math.floor(Math.random() * this.activeElements.length)];
   }
 
   private createGrid(): (Cell | null)[][] {

@@ -177,8 +177,8 @@ export class GameScreen {
       const specials = MatchEngine.findSpecials(this.board.getGrid());
       const allPositions = matches.flatMap(m => m.positions);
 
-      // Easter egg: 5-match or special triggers instant win
-      if (matches.some(m => m.positions.length >= 5) || specials.length > 0) {
+      // Easter egg: 5-match AND special spawn in same round triggers instant win
+      if (matches.some(m => m.positions.length >= 5) && specials.length > 0) {
         this.renderer.markEliminating(allPositions);
         await this.delay(350);
         this.gameState.forceWin();
