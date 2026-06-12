@@ -7,7 +7,7 @@ import { ResourceSystem } from './systems/ResourceSystem';
 import { HomeSystem } from './systems/HomeSystem';
 import { PetSystem } from './systems/PetSystem';
 import type { SaveData } from './types';
-import { ROOMS } from './constants';
+import { ROOMS, ELEMENTS, COLORS } from './constants';
 
 class GameApp {
   private screenMgr: ScreenManager;
@@ -86,28 +86,42 @@ class GameApp {
 
   private setupScreens(): void {
     const menu = document.createElement('div');
-    menu.classList.add('screen', 'active');
+    menu.classList.add('screen', 'active', 'menu-screen');
 
+    // Title
     const title = document.createElement('h1');
-    title.textContent = 'Pet Match';
+    title.className = 'menu-title';
+    title.textContent = '12生肖消消乐';
     menu.appendChild(title);
 
-    const petIcon = document.createElement('img');
-    petIcon.src = '/assets/avatars/rat.png';
-    petIcon.style.width = '80px';
-    petIcon.style.height = '80px';
-    petIcon.style.marginBottom = '24px';
-    petIcon.style.objectFit = 'contain';
-    menu.appendChild(petIcon);
+    // Avatar grid (4 columns x 3 rows)
+    const grid = document.createElement('div');
+    grid.className = 'menu-avatar-grid';
+    for (const element of ELEMENTS) {
+      const cell = document.createElement('div');
+      cell.className = 'menu-avatar-cell';
+      cell.style.backgroundColor = COLORS[element as any];
 
+      const img = document.createElement('img');
+      img.src = `/assets/avatars/${element}.png`;
+      img.alt = element;
+      cell.appendChild(img);
+      grid.appendChild(cell);
+    }
+    menu.appendChild(grid);
+
+    // Start button
     const startBtn = document.createElement('button');
+    startBtn.className = 'menu-start-btn';
     startBtn.textContent = '开始游戏';
     startBtn.addEventListener('click', () => {
       this.screenMgr.show('levelSelect');
     });
     menu.appendChild(startBtn);
 
+    // Home button (smaller, below start)
     const homeBtn = document.createElement('button');
+    homeBtn.className = 'menu-home-btn';
     homeBtn.textContent = '我的家园';
     homeBtn.addEventListener('click', () => {
       this.screenMgr.show('home');
