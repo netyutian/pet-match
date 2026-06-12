@@ -28,13 +28,13 @@ describe('ResourceSystem', () => {
   });
 
   it('tracks fragments', () => {
-    system.addFragments('cat', 3);
-    expect(system.getFragments('cat')).toBe(3);
+    system.addFragments('rat', 3);
+    expect(system.getFragments('rat')).toBe(3);
   });
 
   it('spends fragments', () => {
-    system.addFragments('dog', 5);
-    expect(system.spendFragments('dog', 3)).toBe(true);
-    expect(system.getFragments('dog')).toBe(2);
+    system.addFragments('ox', 5);
+    expect(system.spendFragments('ox', 3)).toBe(true);
+    expect(system.getFragments('ox')).toBe(2);
   });
 });
