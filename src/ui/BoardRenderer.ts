@@ -1,6 +1,6 @@
 import type { Board } from '../core/Board';
 import type { Position, Cell, SpecialType } from '../types';
-import { BOARD_SIZE, COLORS, ELEMENT_EMOJI } from '../constants';
+import { BOARD_SIZE } from '../constants';
 
 export class BoardRenderer {
   private container: HTMLElement;
@@ -315,14 +315,17 @@ export class BoardRenderer {
 
   private renderCell(cellEl: HTMLElement, cell: Cell | null): void {
     if (!cell) {
-      cellEl.style.backgroundColor = 'transparent';
+      cellEl.style.backgroundImage = 'none';
       cellEl.textContent = '';
       cellEl.style.border = '3px solid transparent';
       return;
     }
 
-    cellEl.style.backgroundColor = COLORS[cell.element];
-    cellEl.textContent = ELEMENT_EMOJI[cell.element];
+    cellEl.style.backgroundImage = `url('/assets/avatars/${cell.element}.png')`;
+    cellEl.style.backgroundSize = 'contain';
+    cellEl.style.backgroundRepeat = 'no-repeat';
+    cellEl.style.backgroundPosition = 'center';
+    cellEl.textContent = '';
     cellEl.style.border = this.getBorderForSpecial(cell.special);
   }
 

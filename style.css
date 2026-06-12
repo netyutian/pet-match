@@ -83,6 +83,7 @@ h1 {
   cursor: grab;
   user-select: none;
   border: 3px solid transparent;
+  background-color: transparent;
 }
 
 /* Elimination animation */
