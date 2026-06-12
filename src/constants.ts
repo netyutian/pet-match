@@ -2,24 +2,36 @@ import type { ElementType, PetData, FurnitureItem } from './types';
 
 export const BOARD_SIZE = 8;
 
-export const ELEMENTS: ElementType[] = ['cat', 'dog', 'rabbit', 'bear', 'bird', 'hamster'];
+export const ELEMENTS: ElementType[] = ['rat', 'ox', 'tiger', 'rabbit', 'dragon', 'snake', 'horse', 'goat', 'monkey', 'rooster', 'dog', 'pig'];
 
 export const COLORS: Record<ElementType, string> = {
-  cat: '#FFB6C1',
-  dog: '#87CEEB',
+  rat: '#FFB6C1',
+  ox: '#87CEEB',
+  tiger: '#FFA07A',
   rabbit: '#98FB98',
-  bear: '#DEB887',
-  bird: '#F0E68C',
-  hamster: '#DDA0DD',
+  dragon: '#DEB887',
+  snake: '#F0E68C',
+  horse: '#DDA0DD',
+  goat: '#B0E0E6',
+  monkey: '#FFD700',
+  rooster: '#FF6347',
+  dog: '#90EE90',
+  pig: '#FFC0CB',
 };
 
 export const ELEMENT_EMOJI: Record<ElementType, string> = {
-  cat: '🐱',
-  dog: '🐶',
+  rat: '🐭',
+  ox: '🐮',
+  tiger: '🐯',
   rabbit: '🐰',
-  bear: '🐻',
-  bird: '🐦',
-  hamster: '🐹',
+  dragon: '🐲',
+  snake: '🐍',
+  horse: '🐴',
+  goat: '🐐',
+  monkey: '🐵',
+  rooster: '🐔',
+  dog: '🐶',
+  pig: '🐷',
 };
 
 export const INITIAL_COINS = 200;

@@ -1,4 +1,4 @@
-export type ElementType = 'cat' | 'dog' | 'rabbit' | 'bear' | 'bird' | 'hamster';
+export type ElementType = 'rat' | 'ox' | 'tiger' | 'rabbit' | 'dragon' | 'snake' | 'horse' | 'goat' | 'monkey' | 'rooster' | 'dog' | 'pig';
 
 export type SpecialType = 'none' | 'line_h' | 'line_v' | 'bomb';
 
