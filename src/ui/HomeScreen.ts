@@ -109,6 +109,24 @@ export class HomeScreen {
       label.style.boxShadow = '0 1px 4px rgba(0,0,0,0.1)';
       this.roomView.appendChild(label);
     }
+
+    // Render pets in room
+    const pets = this.pets.getAllPets();
+    for (let i = 0; i < pets.length; i++) {
+      const pet = pets[i];
+      const petEl = document.createElement('img');
+      petEl.src = `/assets/avatars/${pet.id}.png`;
+      petEl.style.position = 'absolute';
+      petEl.style.width = '48px';
+      petEl.style.height = '48px';
+      petEl.style.objectFit = 'contain';
+      petEl.style.left = `${(i % 3) * 60 + 20}px`;
+      petEl.style.top = `${Math.floor(i / 3) * 60 + 20}px`;
+      petEl.style.borderRadius = '8px';
+      petEl.style.background = 'rgba(255,255,255,0.6)';
+      petEl.style.padding = '2px';
+      this.roomView.appendChild(petEl);
+    }
   }
 
   private renderPetList(): void {
@@ -116,6 +134,15 @@ export class HomeScreen {
     for (const pet of this.pets.getAllPets()) {
       const card = document.createElement('div');
       card.classList.add('pet-card');
+
+      const avatar = document.createElement('img');
+      avatar.src = `/assets/avatars/${pet.id}.png`;
+      avatar.style.width = '40px';
+      avatar.style.height = '40px';
+      avatar.style.borderRadius = '8px';
+      avatar.style.objectFit = 'contain';
+      avatar.style.marginRight = '12px';
+      card.appendChild(avatar);
 
       const info = document.createElement('div');
       const name = document.createElement('div');

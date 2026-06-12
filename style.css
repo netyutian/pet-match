@@ -394,3 +394,19 @@ h1 {
   80% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+.pet-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.room-pet-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 2px;
+}
