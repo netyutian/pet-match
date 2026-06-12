@@ -3,9 +3,21 @@ import { BOARD_SIZE, ELEMENTS } from '../constants';
 
 export class Board {
   private grid: (Cell | null)[][];
+  private preferredElement: string | undefined;
 
   constructor() {
     this.grid = this.createGrid();
+  }
+
+  setPreferredElement(element: string | undefined): void {
+    this.preferredElement = element;
+  }
+
+  private pickElement(): string {
+    if (this.preferredElement && Math.random() < 0.5) {
+      return this.preferredElement;
+    }
+    return ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
   }
 
   private createGrid(): (Cell | null)[][] {
@@ -27,14 +39,14 @@ export class Board {
     let attempts = 0;
 
     while (attempts < 100) {
-      const element = available[Math.floor(Math.random() * available.length)];
-      const cell: Cell = { element, special: 'none' };
+      const element = this.pickElement();
+      const cell: Cell = { element: element as any, special: 'none' };
 
       if (!this.createsMatch(grid, row, col, cell)) {
         return cell;
       }
 
-      const idx = available.indexOf(element);
+      const idx = available.indexOf(element as any);
       if (idx > -1) available.splice(idx, 1);
       attempts++;
     }
@@ -104,7 +116,7 @@ export class Board {
 
       for (let r = writeRow; r >= 0; r--) {
         this.grid[r][c] = {
-          element: ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)],
+          element: this.pickElement() as any,
           special: 'none',
         };
         newPositions.push({ row: r, col: c });

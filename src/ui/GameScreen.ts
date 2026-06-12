@@ -4,7 +4,7 @@ import { GameState } from '../core/GameState';
 import { getLevel } from '../core/LevelConfig';
 import { BoardRenderer } from './BoardRenderer';
 import { SoundManager } from '../systems/SoundManager';
-import { ELEMENT_NAMES } from '../constants';
+import { ELEMENT_EMOJI } from '../constants';
 import type { Position, LevelConfig } from '../types';
 
 export class GameScreen {
@@ -38,6 +38,7 @@ export class GameScreen {
     this.container.classList.add('screen', 'active');
 
     this.board = new Board();
+    this.board.setPreferredElement(level.goal.element);
     this.gameState = new GameState(level);
     this.sound = new SoundManager();
 
@@ -100,8 +101,8 @@ export class GameScreen {
     }
     if (goal.type === 'collect' && goal.element) {
       const collected = this.gameState.getCollectedCount(goal.element);
-      const name = ELEMENT_NAMES[goal.element];
-      return `${name} ${collected}/${goal.target}`;
+      const emoji = ELEMENT_EMOJI[goal.element];
+      return `${emoji} ${collected}/${goal.target}`;
     }
     if (goal.type === 'clear') {
       return `清除${goal.target}个障碍`;
