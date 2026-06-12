@@ -155,6 +155,9 @@ export class GameScreen {
 
   private async processMatches(): Promise<boolean> {
     let totalScore = 0;
+    const goalElement = this.level.goal.element;
+    let targetClearedInChain = 0;
+    let bigClearTriggered = false;
 
     while (MatchEngine.hasMatch(this.board.getGrid())) {
       const matches = MatchEngine.findMatches(this.board.getGrid());
@@ -181,11 +184,13 @@ export class GameScreen {
         if (cell?.obstacle) {
           this.gameState.recordObstacleCleared();
         }
+        if (cell && goalElement && cell.element === goalElement) {
+          targetClearedInChain++;
+        }
         this.board.setCell(pos.row, pos.col, null);
       }
 
       // 3. Score and floating text
-      const goalElement = this.level.goal.element;
       for (const match of matches) {
         totalScore += match.positions.length * 10;
         this.gameState.recordMatch(match.element, match.positions.length);
@@ -194,6 +199,15 @@ export class GameScreen {
           const centerPos = match.positions[Math.floor(match.positions.length / 2)];
           this.renderer.showFloatingText(centerPos, `${emoji} +${match.positions.length}`);
         }
+      }
+
+      // Big clear bonus
+      if (!bigClearTriggered && goalElement && targetClearedInChain >= 8) {
+        bigClearTriggered = true;
+        this.gameState.addScore(50);
+        this.sound.playBigClear();
+        const centerPos = { row: 3, col: 3 };
+        this.renderer.showFloatingText(centerPos, `大消除！+50`);
       }
 
       // 4. Gravity and render
