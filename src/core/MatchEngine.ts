@@ -81,11 +81,13 @@ export class MatchEngine {
 
     for (let r = 0; r < BOARD_SIZE; r++) {
       for (let c = 0; c < BOARD_SIZE; c++) {
+        if (!grid[r]?.[c]) continue;
         const pos1: Position = { row: r, col: c };
         for (const d of directions) {
           const nr = r + d.dr;
           const nc = c + d.dc;
           if (nr >= BOARD_SIZE || nc >= BOARD_SIZE) continue;
+          if (!grid[nr]?.[nc]) continue;
 
           const pos2: Position = { row: nr, col: nc };
           // Virtual swap and test

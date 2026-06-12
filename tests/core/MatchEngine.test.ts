@@ -45,4 +45,14 @@ describe('MatchEngine', () => {
     expect(specials.length).toBe(1);
     expect(specials[0].type).toBe('line_v');
   });
+
+  it('findHint returns null when no valid swap', () => {
+    const grid: (Cell | null)[][] = [
+      [makeCell('cat'), makeCell('dog'), makeCell('bear')],
+      [makeCell('bird'), makeCell('hamster'), makeCell('cat')],
+      [makeCell('dog'), makeCell('bear'), makeCell('bird')],
+    ];
+    const hint = MatchEngine.findHint(grid);
+    expect(hint).toBeNull();
+  });
 });
