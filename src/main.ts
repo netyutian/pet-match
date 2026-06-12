@@ -69,11 +69,11 @@ class GameApp {
       levelStars: {},
       coins: 200,
       fragments: {},
-      unlockedPets: ['cat'],
+      unlockedPets: ['rat'],
       pets: {
-        cat: {
-          id: 'cat',
-          name: '咪咪',
+        rat: {
+          id: 'rat',
+          name: '吱吱',
           intimacy: 0,
           unlockedClothes: [],
           currentClothes: '',
@@ -92,11 +92,12 @@ class GameApp {
     title.textContent = 'Pet Match';
     menu.appendChild(title);
 
-    const petIcon = document.createElement('div');
-    petIcon.textContent = '🐱';
-    petIcon.style.fontSize = '80px';
+    const petIcon = document.createElement('img');
+    petIcon.src = '/assets/avatars/rat.png';
+    petIcon.style.width = '80px';
+    petIcon.style.height = '80px';
     petIcon.style.marginBottom = '24px';
-    petIcon.style.textAlign = 'center';
+    petIcon.style.objectFit = 'contain';
     menu.appendChild(petIcon);
 
     const startBtn = document.createElement('button');
@@ -149,9 +150,9 @@ class GameApp {
         this.resources.addCoins(coinsReward);
 
         const fragmentMap: Record<number, string> = {
-          3: 'cat',
-          5: 'dog',
-          8: 'rabbit',
+          3: 'rat',
+          5: 'ox',
+          8: 'tiger',
         };
         const fragmentPet = fragmentMap[levelId];
         if (fragmentPet) {
