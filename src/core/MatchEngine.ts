@@ -73,11 +73,16 @@ export class MatchEngine {
     return this.findMatches(grid).length > 0;
   }
 
-  static findHint(grid: (Cell | null)[][]): [Position, Position] | null {
+  static findHint(
+    grid: (Cell | null)[][],
+    preferredElement?: string
+  ): [Position, Position] | null {
     const directions = [
       { dr: 0, dc: 1 },
       { dr: 1, dc: 0 },
     ];
+
+    let fallback: [Position, Position] | null = null;
 
     for (let r = 0; r < BOARD_SIZE; r++) {
       for (let c = 0; c < BOARD_SIZE; c++) {
@@ -95,20 +100,27 @@ export class MatchEngine {
           grid[r][c] = grid[nr][nc];
           grid[nr][nc] = temp;
 
-          const hasMatch = this.hasMatch(grid);
+          const matches = this.findMatches(grid);
+          const isPreferred =
+            preferredElement && matches.some((m) => m.element === preferredElement);
 
           // Swap back
           grid[nr][nc] = grid[r][c];
           grid[r][c] = temp;
 
-          if (hasMatch) {
-            return [pos1, pos2];
+          if (matches.length > 0) {
+            if (isPreferred) {
+              return [pos1, pos2];
+            }
+            if (!fallback) {
+              fallback = [pos1, pos2];
+            }
           }
         }
       }
     }
 
-    return null;
+    return fallback;
   }
 
   static findSpecials(grid: (Cell | null)[][]): SpecialSpawn[] {

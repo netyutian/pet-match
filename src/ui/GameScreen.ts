@@ -344,7 +344,8 @@ export class GameScreen {
 
   private showHint(): void {
     if (this.gameState.getStatus() !== 'playing') return;
-    const hint = MatchEngine.findHint(this.board.getGrid());
+    const goalElement = this.level.goal.element;
+    const hint = MatchEngine.findHint(this.board.getGrid(), goalElement);
     if (hint) {
       this.renderer.markHint([hint[0], hint[1]]);
     }
