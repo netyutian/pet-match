@@ -23,10 +23,10 @@ export class PetSystem {
         : {};
     }
 
-    if (!this.pets['cat']) {
-      this.pets['cat'] = {
-        id: 'cat',
-        name: '咪咪',
+    if (!this.pets['rat']) {
+      this.pets['rat'] = {
+        id: 'rat',
+        name: '吱吱',
         intimacy: 0,
         unlockedClothes: [],
         currentClothes: '',
