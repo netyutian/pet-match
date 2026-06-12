@@ -4,7 +4,7 @@ import { GameState } from '../core/GameState';
 import { getLevel } from '../core/LevelConfig';
 import { BoardRenderer } from './BoardRenderer';
 import { SoundManager } from '../systems/SoundManager';
-import { ELEMENT_EMOJI } from '../constants';
+import { ELEMENT_NAMES } from '../constants';
 import type { Position, LevelConfig } from '../types';
 
 export class GameScreen {
@@ -100,8 +100,8 @@ export class GameScreen {
     }
     if (goal.type === 'collect' && goal.element) {
       const collected = this.gameState.getCollectedCount(goal.element);
-      const emoji = ELEMENT_EMOJI[goal.element];
-      return `${emoji} ${collected}/${goal.target}`;
+      const name = ELEMENT_NAMES[goal.element];
+      return `${name} ${collected}/${goal.target}`;
     }
     if (goal.type === 'clear') {
       return `清除${goal.target}个障碍`;
@@ -203,9 +203,9 @@ export class GameScreen {
         totalScore += match.positions.length * 10;
         this.gameState.recordMatch(match.element, match.positions.length);
         if (goalElement && match.element === goalElement && match.positions.length > 0) {
-          const emoji = ELEMENT_EMOJI[goalElement];
+          const name = ELEMENT_NAMES[goalElement];
           const centerPos = match.positions[Math.floor(match.positions.length / 2)];
-          this.renderer.showFloatingText(centerPos, `${emoji} +${match.positions.length}`);
+          this.renderer.showFloatingText(centerPos, `${name} +${match.positions.length}`);
         }
       }
 
@@ -307,21 +307,6 @@ export class GameScreen {
 
     overlay.appendChild(card);
     this.container.appendChild(overlay);
-  }
-
-  private highlightTargets(): void {
-    const goal = this.level.goal;
-    if (goal.type !== 'collect' || !goal.element) return;
-    const targets: Position[] = [];
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const cell = this.board.getCell(r, c);
-        if (cell?.element === goal.element) {
-          targets.push({ row: r, col: c });
-        }
-      }
-    }
-    this.renderer.markTarget(targets);
   }
 
   private delay(ms: number): Promise<void> {
