@@ -8,7 +8,7 @@ const sampleSaveData: SaveData = {
   currentLevel: 5,
   levelStars: { 1: 3, 2: 2, 3: 1 },
   coins: 500,
-  fragments: { cat: 10, dog: 5 },
+  fragments: { rat: 10, ox: 5 },
   unlockedPets: ['pet1', 'pet2'],
   pets: {
     pet1: {
