@@ -4,7 +4,6 @@ import { GameState } from '../core/GameState';
 import { getLevel } from '../core/LevelConfig';
 import { BoardRenderer } from './BoardRenderer';
 import { SoundManager } from '../systems/SoundManager';
-import { ELEMENT_EMOJI } from '../constants';
 import type { Position, LevelConfig } from '../types';
 
 export class GameScreen {
@@ -89,7 +88,13 @@ export class GameScreen {
   }
 
   private updateHUD(): void {
-    this.scoreEl.textContent = this.formatGoal();
+    const goal = this.level.goal;
+    if (goal.type === 'collect' && goal.element) {
+      const collected = this.gameState.getCollectedCount(goal.element);
+      this.scoreEl.innerHTML = `<img src="/assets/avatars/${goal.element}.png" style="width:20px;height:20px;vertical-align:middle;margin-right:4px;border-radius:4px;"> ${collected}/${goal.target}`;
+    } else {
+      this.scoreEl.textContent = this.formatGoal();
+    }
     this.movesEl.textContent = `步数: ${this.gameState.getMovesLeft()}`;
     this.goalEl.textContent = `分数: ${this.gameState.getScore()}`;
   }
@@ -101,8 +106,7 @@ export class GameScreen {
     }
     if (goal.type === 'collect' && goal.element) {
       const collected = this.gameState.getCollectedCount(goal.element);
-      const emoji = ELEMENT_EMOJI[goal.element];
-      return `${emoji} ${collected}/${goal.target}`;
+      return `${collected}/${goal.target}`;
     }
     if (goal.type === 'clear') {
       return `清除${goal.target}个障碍`;
@@ -204,9 +208,11 @@ export class GameScreen {
         totalScore += match.positions.length * 10;
         this.gameState.recordMatch(match.element, match.positions.length);
         if (goalElement && match.element === goalElement && match.positions.length > 0) {
-          const name = ELEMENT_NAMES[goalElement];
           const centerPos = match.positions[Math.floor(match.positions.length / 2)];
-          this.renderer.showFloatingText(centerPos, `${name} +${match.positions.length}`);
+          this.renderer.showFloatingText(
+            centerPos,
+            `<img src="/assets/avatars/${goalElement}.png" style="width:16px;height:16px;vertical-align:middle;margin-right:2px;border-radius:3px;"> +${match.positions.length}`
+          );
         }
       }
 

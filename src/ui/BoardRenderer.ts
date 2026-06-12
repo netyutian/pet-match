@@ -285,7 +285,7 @@ export class BoardRenderer {
 
     const floatEl = document.createElement('div');
     floatEl.className = 'floating-text';
-    floatEl.textContent = text;
+    floatEl.innerHTML = text;
 
     const rect = cellEl.getBoundingClientRect();
     const gridRect = this.gridEl!.getBoundingClientRect();
