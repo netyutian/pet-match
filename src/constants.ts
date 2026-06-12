@@ -34,20 +34,53 @@ export const ELEMENT_EMOJI: Record<ElementType, string> = {
   pig: '🐷',
 };
 
+export const ELEMENT_NAMES: Record<ElementType, string> = {
+  rat: '鼠',
+  ox: '牛',
+  tiger: '虎',
+  rabbit: '兔',
+  dragon: '龙',
+  snake: '蛇',
+  horse: '马',
+  goat: '羊',
+  monkey: '猴',
+  rooster: '鸡',
+  dog: '狗',
+  pig: '猪',
+};
+
 export const INITIAL_COINS = 200;
 
 export const PET_COST_FRAGMENTS = 12;
 
 export const PET_DATA: Record<string, PetData> = {
-  cat: { id: 'cat', species: '橘猫', favoriteFood: '鱼干', maxIntimacy: 100 },
-  dog: { id: 'dog', species: '柴犬', favoriteFood: '骨头', maxIntimacy: 100 },
-  rabbit: { id: 'rabbit', species: '白兔', favoriteFood: '胡萝卜', maxIntimacy: 100 },
+  rat: { id: 'rat', species: '小鼠', favoriteFood: '奶酪', maxIntimacy: 100 },
+  ox: { id: 'ox', species: '小牛', favoriteFood: '青草', maxIntimacy: 100 },
+  tiger: { id: 'tiger', species: '小老虎', favoriteFood: '肉干', maxIntimacy: 100 },
+  rabbit: { id: 'rabbit', species: '小兔', favoriteFood: '胡萝卜', maxIntimacy: 100 },
+  dragon: { id: 'dragon', species: '小龙', favoriteFood: '龙珠糖', maxIntimacy: 100 },
+  snake: { id: 'snake', species: '小蛇', favoriteFood: '鸡蛋', maxIntimacy: 100 },
+  horse: { id: 'horse', species: '小马', favoriteFood: '苹果', maxIntimacy: 100 },
+  goat: { id: 'goat', species: '小羊', favoriteFood: '青菜', maxIntimacy: 100 },
+  monkey: { id: 'monkey', species: '小猴', favoriteFood: '香蕉', maxIntimacy: 100 },
+  rooster: { id: 'rooster', species: '小鸡', favoriteFood: '米粒', maxIntimacy: 100 },
+  dog: { id: 'dog', species: '小狗', favoriteFood: '骨头', maxIntimacy: 100 },
+  pig: { id: 'pig', species: '小猪', favoriteFood: '红薯', maxIntimacy: 100 },
 };
 
 export const PET_CLOTHES: Record<string, string[]> = {
-  cat: ['围巾', '帽子'],
-  dog: ['项圈', '披风'],
+  rat: ['小帽子', '围巾'],
+  ox: ['牛角环', '披风'],
+  tiger: ['虎纹衣', '铃铛'],
   rabbit: ['蝴蝶结', '花环'],
+  dragon: ['龙角', '鳞甲'],
+  snake: ['蛇纹带', '小草帽'],
+  horse: ['马鞍', '马蹄铁'],
+  goat: ['羊角饰', '毛绒衣'],
+  monkey: ['紧箍', '香蕉背包'],
+  rooster: ['鸡冠饰', '羽毛衣'],
+  dog: ['项圈', '披风'],
+  pig: ['猪鼻子', '围裙'],
 };
 
 export const FURNITURE_DATA: FurnitureItem[] = [
