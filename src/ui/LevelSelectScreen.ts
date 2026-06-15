@@ -182,7 +182,7 @@ export class LevelSelectScreen {
     node.style.top = `${point.y}px`;
     node.style.animationDelay = `${index * 80}ms`;
 
-    const element = (level.goal as { element: string }).element as ElementType;
+    const element = level.goal.element ?? 'rat';
 
     const avatarRing = document.createElement('div');
     avatarRing.classList.add('avatar-ring');
