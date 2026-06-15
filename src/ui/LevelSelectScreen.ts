@@ -106,13 +106,13 @@ export class LevelSelectScreen {
 
   private createGrassGround(): HTMLElement {
     const grass = document.createElement('div');
-    grass.classList.add('grass-ground');
+    grass.classList.add('grass-ground', 'ground-layer');
     return grass;
   }
 
   private createFlowers(): HTMLElement {
     const wrapper = document.createElement('div');
-    wrapper.classList.add('flowers');
+    wrapper.classList.add('flowers', 'ground-layer');
 
     const colors = ['#FF6B6B', '#FFD93D', '#FF9FF3', '#FFFFFF'];
     for (let i = 0; i < 14; i++) {

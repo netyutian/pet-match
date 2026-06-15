@@ -539,19 +539,8 @@ h1 {
   100% { transform: translateX(calc(100vw + 120px)); }
 }
 
-/* Stair SVG */
-.stair-svg {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 400px;
-  height: 100%;
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* Stair nodes */
+/* Stair SVG and nodes */
+.stair-svg,
 .stair-nodes {
   position: absolute;
   left: 50%;
@@ -559,8 +548,15 @@ h1 {
   width: 100%;
   max-width: 400px;
   height: 100%;
-  z-index: 3;
   pointer-events: none;
+}
+
+.stair-svg {
+  z-index: 2;
+}
+
+.stair-nodes {
+  z-index: 3;
 }
 
 .level-node {
@@ -574,11 +570,11 @@ h1 {
   transform: translate(-50%, -50%) scale(0);
   opacity: 0;
   animation: nodePopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  transition: transform 0.15s ease;
 }
 
-.level-node:active {
-  transform: translate(-50%, -50%) scale(0.9);
+.level-node:active .avatar-ring {
+  transform: scale(0.9);
+  transition: transform 0.15s ease;
 }
 
 .level-node.locked {
@@ -668,28 +664,24 @@ h1 {
 }
 
 /* Grass and flowers */
-.grass-ground {
+.ground-layer {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   height: 18vh;
   min-height: 120px;
-  z-index: 4;
-  background: linear-gradient(180deg, #90EE90 0%, #32CD32 60%, #228B22 100%);
-  border-radius: 50% 50% 0 0 / 20px 20px 0 0;
   pointer-events: none;
 }
 
+.grass-ground {
+  z-index: 4;
+  background: linear-gradient(180deg, #90EE90 0%, #32CD32 60%, #228B22 100%);
+  border-radius: 50% 50% 0 0 / 20px 20px 0 0;
+}
+
 .flowers {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 18vh;
-  min-height: 120px;
   z-index: 5;
-  pointer-events: none;
   overflow: hidden;
 }
 
