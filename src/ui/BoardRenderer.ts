@@ -346,7 +346,7 @@ export class BoardRenderer {
       return;
     }
 
-    cellEl.style.backgroundImage = `url('/assets/avatars/${cell.element}.png')`;
+    cellEl.style.backgroundImage = `url('./assets/avatars/${cell.element}.png')`;
     cellEl.style.backgroundSize = '100%';
     cellEl.style.backgroundRepeat = 'no-repeat';
     cellEl.style.backgroundPosition = 'center';

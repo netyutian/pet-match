@@ -1,6 +1,5 @@
 import { LEVELS } from '../core/LevelConfig';
 import { COLORS } from '../constants';
-import type { ElementType } from '../types';
 
 export class LevelSelectScreen {
   private container: HTMLElement;
@@ -8,7 +7,7 @@ export class LevelSelectScreen {
   private levelStars: Record<number, number>;
   private onSelect: (levelId: number) => void;
   private nodesContainer: HTMLElement;
-  private svgPath: SVGPathElement;
+  private svgPath!: SVGPathElement;
 
   constructor(
     currentLevel: number,
@@ -189,7 +188,7 @@ export class LevelSelectScreen {
     avatarRing.style.backgroundColor = COLORS[element] ?? '#FFB6C1';
 
     const img = document.createElement('img');
-    img.src = `/assets/avatars/${element}.png`;
+    img.src = `./assets/avatars/${element}.png`;
     img.alt = element;
     avatarRing.appendChild(img);
     node.appendChild(avatarRing);

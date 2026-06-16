@@ -104,7 +104,7 @@ class GameApp {
       cell.style.backgroundColor = COLORS[element as ElementType];
 
       const img = document.createElement('img');
-      img.src = `/assets/avatars/${element}.png`;
+      img.src = `./assets/avatars/${element}.png`;
       img.alt = element;
       cell.appendChild(img);
       grid.appendChild(cell);

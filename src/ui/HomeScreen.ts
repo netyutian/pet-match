@@ -115,7 +115,7 @@ export class HomeScreen {
     for (let i = 0; i < pets.length; i++) {
       const pet = pets[i];
       const petEl = document.createElement('img');
-      petEl.src = `/assets/avatars/${pet.id}.png`;
+      petEl.src = `./assets/avatars/${pet.id}.png`;
       petEl.style.position = 'absolute';
       petEl.style.width = '48px';
       petEl.style.height = '48px';
@@ -136,7 +136,7 @@ export class HomeScreen {
       card.classList.add('pet-card');
 
       const avatar = document.createElement('img');
-      avatar.src = `/assets/avatars/${pet.id}.png`;
+      avatar.src = `./assets/avatars/${pet.id}.png`;
       avatar.style.width = '40px';
       avatar.style.height = '40px';
       avatar.style.borderRadius = '8px';

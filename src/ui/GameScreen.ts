@@ -99,7 +99,7 @@ export class GameScreen {
     const goal = this.level.goal;
     if (goal.type === 'collect' && goal.element) {
       const collected = this.gameState.getCollectedCount(goal.element);
-      this.scoreEl.innerHTML = `<img src="/assets/avatars/${goal.element}.png" style="width:20px;height:20px;vertical-align:middle;margin-right:4px;border-radius:4px;"> ${collected}/${goal.target}`;
+      this.scoreEl.innerHTML = `<img src="./assets/avatars/${goal.element}.png" style="width:20px;height:20px;vertical-align:middle;margin-right:4px;border-radius:4px;"> ${collected}/${goal.target}`;
     } else if (goal.type === 'score') {
       this.scoreEl.textContent = `目标: ${goal.target}分`;
     } else if (goal.type === 'clear') {
@@ -180,7 +180,6 @@ export class GameScreen {
 
     while (MatchEngine.hasMatch(this.board.getGrid())) {
       const matches = MatchEngine.findMatches(this.board.getGrid());
-      const specials = MatchEngine.findSpecials(this.board.getGrid());
       const allPositions = matches.flatMap(m => m.positions);
 
       // 1. Show elimination animation
@@ -215,7 +214,7 @@ export class GameScreen {
           const centerPos = match.positions[Math.floor(match.positions.length / 2)];
           this.renderer.showFloatingText(
             centerPos,
-            `<img src="/assets/avatars/${goalElement}.png" style="width:16px;height:16px;vertical-align:middle;margin-right:2px;border-radius:3px;"> +${match.positions.length}`
+            `<img src="./assets/avatars/${goalElement}.png" style="width:16px;height:16px;vertical-align:middle;margin-right:2px;border-radius:3px;"> +${match.positions.length}`
           );
         }
       }
