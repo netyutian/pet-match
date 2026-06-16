@@ -1,6 +1,6 @@
 import type { Board } from '../core/Board';
 import type { Position, Cell, SpecialType } from '../types';
-import { BOARD_SIZE } from '../constants';
+import { BOARD_SIZE, BORDER_COLORS } from '../constants';
 
 export class BoardRenderer {
   private container: HTMLElement;
@@ -29,7 +29,7 @@ export class BoardRenderer {
     this.gridEl.classList.add('board-grid');
     this.gridEl.style.display = 'grid';
     this.gridEl.style.gridTemplateColumns = `repeat(${BOARD_SIZE}, 1fr)`;
-    this.gridEl.style.gap = '4px';
+    this.gridEl.style.gap = '2px';
     this.gridEl.style.maxWidth = '400px';
     this.gridEl.style.width = '100%';
     this.gridEl.style.aspectRatio = '1';
@@ -60,8 +60,7 @@ export class BoardRenderer {
     cellEl.classList.add('board-cell');
     cellEl.dataset.row = String(row);
     cellEl.dataset.col = String(col);
-    cellEl.style.borderRadius = '8px';
-    cellEl.style.fontSize = '24px';
+    cellEl.style.borderRadius = '12px';
     cellEl.style.display = 'flex';
     cellEl.style.alignItems = 'center';
     cellEl.style.justifyContent = 'center';
@@ -317,27 +316,54 @@ export class BoardRenderer {
     if (!cell) {
       cellEl.style.backgroundImage = 'none';
       cellEl.textContent = '';
-      cellEl.style.border = '3px solid transparent';
+      cellEl.style.backgroundColor = 'transparent';
+      cellEl.style.borderColor = 'transparent';
+      cellEl.style.boxShadow = 'none';
+      return;
+    }
+
+    if (cell.obstacle) {
+      cellEl.style.backgroundImage = 'none';
+      cellEl.style.backgroundColor = 'transparent';
+      cellEl.style.borderColor = 'transparent';
+      cellEl.style.boxShadow = 'none';
+      cellEl.style.display = 'flex';
+      cellEl.style.alignItems = 'center';
+      cellEl.style.justifyContent = 'center';
+      if (cell.obstacle === 'wood') {
+        cellEl.style.backgroundColor = '#8B4513';
+        cellEl.style.borderRadius = '8px';
+        cellEl.style.border = '2px solid #A0522D';
+        cellEl.textContent = '🪵';
+        cellEl.style.fontSize = '28px';
+      } else if (cell.obstacle === 'ice') {
+        cellEl.style.backgroundColor = 'rgba(173, 216, 230, 0.6)';
+        cellEl.style.border = '2px solid #87CEEB';
+        cellEl.style.borderRadius = '12px';
+        cellEl.textContent = '🧊';
+        cellEl.style.fontSize = '28px';
+      }
       return;
     }
 
     cellEl.style.backgroundImage = `url('/assets/avatars/${cell.element}.png')`;
-    cellEl.style.backgroundSize = 'contain';
+    cellEl.style.backgroundSize = '100%';
     cellEl.style.backgroundRepeat = 'no-repeat';
     cellEl.style.backgroundPosition = 'center';
+    cellEl.style.backgroundColor = '#fff';
     cellEl.textContent = '';
-    cellEl.style.border = this.getBorderForSpecial(cell.special);
+    cellEl.style.borderColor = this.getBorderColorForSpecial(cell.special) ?? BORDER_COLORS[cell.element];
   }
 
-  private getBorderForSpecial(special: SpecialType): string {
+  private getBorderColorForSpecial(special: SpecialType): string | null {
     switch (special) {
       case 'line_h':
       case 'line_v':
-        return '3px solid #4444FF';
+        return '#4444FF';
       case 'bomb':
-        return '3px solid #FF4444';
+        return '#FF4444';
       default:
-        return '3px solid transparent';
+        return null;
     }
   }
 }

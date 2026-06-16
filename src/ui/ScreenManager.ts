@@ -14,6 +14,10 @@ export class ScreenManager {
   }
 
   register(name: ScreenName, element: HTMLElement): void {
+    const existing = this.screens.get(name);
+    if (existing && existing.parentNode) {
+      existing.parentNode.removeChild(existing);
+    }
     element.classList.add('screen');
     element.style.display = 'none';
     this.container.appendChild(element);

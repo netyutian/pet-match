@@ -6,7 +6,7 @@ import { SaveManager } from './systems/SaveManager';
 import { ResourceSystem } from './systems/ResourceSystem';
 import { HomeSystem } from './systems/HomeSystem';
 import { PetSystem } from './systems/PetSystem';
-import type { SaveData } from './types';
+import type { SaveData, ElementType } from './types';
 import { ROOMS, ELEMENTS, COLORS } from './constants';
 
 class GameApp {
@@ -94,13 +94,14 @@ class GameApp {
     title.textContent = '12生肖消消乐';
     menu.appendChild(title);
 
-    // Avatar grid (4 columns x 3 rows)
+    // Avatar grid (4 columns x 4 rows, 16 avatars with repeats)
     const grid = document.createElement('div');
     grid.className = 'menu-avatar-grid';
-    for (const element of ELEMENTS) {
+    for (let i = 0; i < 16; i++) {
+      const element = ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
       const cell = document.createElement('div');
       cell.className = 'menu-avatar-cell';
-      cell.style.backgroundColor = COLORS[element as any];
+      cell.style.backgroundColor = COLORS[element as ElementType];
 
       const img = document.createElement('img');
       img.src = `/assets/avatars/${element}.png`;
@@ -183,6 +184,14 @@ class GameApp {
 
       this.persistSave();
       this.levelSelect.update(this.saveData.currentLevel, this.saveData.levelStars);
+
+      if (result.won && result.next) {
+        const nextLevel = levelId + 1;
+        if (nextLevel <= 20) {
+          this.startLevel(nextLevel);
+          return;
+        }
+      }
       this.screenMgr.show('levelSelect');
     });
 

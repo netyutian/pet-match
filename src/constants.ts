@@ -4,6 +4,21 @@ export const BOARD_SIZE = 8;
 
 export const ELEMENTS: ElementType[] = ['rat', 'ox', 'tiger', 'rabbit', 'dragon', 'snake', 'horse', 'goat', 'monkey', 'rooster', 'dog', 'pig'];
 
+export const BORDER_COLORS: Record<ElementType, string> = {
+  rat: '#8BC34A',
+  ox: '#42A5F5',
+  tiger: '#FFA726',
+  rabbit: '#F06292',
+  dragon: '#FFCA28',
+  snake: '#AB47BC',
+  horse: '#26C6DA',
+  goat: '#FFCA28',
+  monkey: '#8BC34A',
+  rooster: '#EF5350',
+  dog: '#42A5F5',
+  pig: '#F06292',
+};
+
 export const COLORS: Record<ElementType, string> = {
   rat: '#FFB6C1',
   ox: '#87CEEB',

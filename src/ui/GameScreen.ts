@@ -13,7 +13,7 @@ export class GameScreen {
   private renderer: BoardRenderer;
   private sound: SoundManager;
   private level: LevelConfig;
-  private onComplete: (result: { won: boolean; stars: number; levelId: number }) => void;
+  private onComplete: (result: { won: boolean; stars: number; levelId: number; next?: boolean }) => void;
 
   private scoreEl!: HTMLElement;
   private movesEl!: HTMLElement;
@@ -23,7 +23,7 @@ export class GameScreen {
 
   constructor(
     levelId: number,
-    onComplete: (result: { won: boolean; stars: number; levelId: number }) => void
+    onComplete: (result: { won: boolean; stars: number; levelId: number; next?: boolean }) => void
   ) {
     this.onComplete = onComplete;
 
@@ -37,7 +37,11 @@ export class GameScreen {
     this.container.classList.add('screen', 'active');
 
     this.board = new Board();
-    this.board.setPreferredElement(level.goal.element);
+    const preferredChance = Math.max(0.2, 0.5 - (levelId - 1) * 0.02);
+    this.board.setPreferredElement(level.goal.element, preferredChance);
+    if (level.obstacles) {
+      this.board.setObstacles(level.obstacles);
+    }
     this.gameState = new GameState(level);
     this.sound = new SoundManager();
 
@@ -62,6 +66,10 @@ export class GameScreen {
 
     this.updateHUD();
     this.startHintTimer();
+
+    if (level.obstacles && level.obstacles.length > 0) {
+      this.showObstacleHint();
+    }
   }
 
   getElement(): HTMLElement {
@@ -92,6 +100,10 @@ export class GameScreen {
     if (goal.type === 'collect' && goal.element) {
       const collected = this.gameState.getCollectedCount(goal.element);
       this.scoreEl.innerHTML = `<img src="/assets/avatars/${goal.element}.png" style="width:20px;height:20px;vertical-align:middle;margin-right:4px;border-radius:4px;"> ${collected}/${goal.target}`;
+    } else if (goal.type === 'score') {
+      this.scoreEl.textContent = `目标: ${goal.target}分`;
+    } else if (goal.type === 'clear') {
+      this.scoreEl.textContent = `清除: ${this.gameState.getClearedObstacles()}/${goal.target}`;
     } else {
       this.scoreEl.textContent = this.formatGoal();
     }
@@ -141,10 +153,10 @@ export class GameScreen {
 
     this.isAnimating = true;
     this.gameState.useMove();
-    const easterEgg = await this.processMatches();
+    await this.processMatches();
 
     // Deadlock shuffle: if no valid moves, reshuffle automatically
-    if (!easterEgg && this.gameState.getStatus() === 'playing') {
+    if (this.gameState.getStatus() === 'playing') {
       const hint = MatchEngine.findHint(this.board.getGrid());
       if (!hint) {
         await this.performShuffle();
@@ -154,19 +166,13 @@ export class GameScreen {
     this.updateHUD();
     this.isAnimating = false;
 
-    if (easterEgg) {
-      await this.delay(500);
-      this.showEasterEggModal();
-      return;
-    }
-
     if (this.gameState.getStatus() !== 'playing') {
       await this.delay(400);
       this.showVictoryOrDefeat();
     }
   }
 
-  private async processMatches(): Promise<boolean> {
+  private async processMatches(): Promise<void> {
     let totalScore = 0;
     const goalElement = this.level.goal.element;
     let targetClearedInChain = 0;
@@ -177,15 +183,6 @@ export class GameScreen {
       const specials = MatchEngine.findSpecials(this.board.getGrid());
       const allPositions = matches.flatMap(m => m.positions);
 
-      // Easter egg: 5-match AND special spawn in same round triggers instant win
-      if (matches.some(m => m.positions.length >= 5) && specials.length > 0) {
-        this.renderer.markEliminating(allPositions);
-        await this.delay(350);
-        this.gameState.forceWin();
-        this.showEasterEggModal();
-        return true;
-      }
-
       // 1. Show elimination animation
       this.sound.playMatch();
       this.renderer.markEliminating(allPositions);
@@ -195,7 +192,14 @@ export class GameScreen {
       for (const pos of allPositions) {
         const cell = this.board.getCell(pos.row, pos.col);
         if (cell?.obstacle) {
-          this.gameState.recordObstacleCleared();
+          const destroyed = this.board.hitObstacle(pos.row, pos.col);
+          if (destroyed) {
+            this.gameState.recordObstacleCleared();
+          }
+          // Obstacle still exists after hit (e.g. ice): keep cell in place
+          if (!destroyed) {
+            continue;
+          }
         }
         if (cell && goalElement && cell.element === goalElement) {
           targetClearedInChain++;
@@ -238,7 +242,6 @@ export class GameScreen {
 
     this.gameState.addScore(totalScore);
     this.renderer.updateFromBoard();
-    return false;
   }
 
   private showVictoryOrDefeat(): void {
@@ -251,35 +254,6 @@ export class GameScreen {
     } else {
       this.onComplete({ won: false, stars: 0, levelId: this.level.id });
     }
-  }
-
-  private showEasterEggModal(): void {
-    const overlay = document.createElement('div');
-    overlay.className = 'victory-modal';
-
-    const card = document.createElement('div');
-
-    const title = document.createElement('h2');
-    title.textContent = '彩蛋触发！';
-    title.style.color = '#FF6B6B';
-    title.style.margin = '0 0 8px';
-    card.appendChild(title);
-
-    const sub = document.createElement('div');
-    sub.textContent = '直接通关！';
-    sub.style.color = '#888';
-    sub.style.marginBottom = '16px';
-    card.appendChild(sub);
-
-    const nextBtn = document.createElement('button');
-    nextBtn.textContent = '下一关';
-    nextBtn.addEventListener('click', () => {
-      this.onComplete({ won: true, stars: 3, levelId: this.level.id });
-    });
-    card.appendChild(nextBtn);
-
-    overlay.appendChild(card);
-    this.container.appendChild(overlay);
   }
 
   private showVictoryModal(stars: number): void {
@@ -305,12 +279,79 @@ export class GameScreen {
     scoreInfo.style.marginBottom = '16px';
     card.appendChild(scoreInfo);
 
+    const btnRow = document.createElement('div');
+    btnRow.style.display = 'flex';
+    btnRow.style.gap = '12px';
+    btnRow.style.justifyContent = 'center';
+
     const nextBtn = document.createElement('button');
     nextBtn.textContent = '下一关';
     nextBtn.addEventListener('click', () => {
+      this.onComplete({ won: true, stars, levelId: this.level.id, next: true });
+    });
+    btnRow.appendChild(nextBtn);
+
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '返回';
+    backBtn.style.background = '#D3D3D3';
+    backBtn.style.color = '#4A4A4A';
+    backBtn.addEventListener('click', () => {
       this.onComplete({ won: true, stars, levelId: this.level.id });
     });
-    card.appendChild(nextBtn);
+    btnRow.appendChild(backBtn);
+
+    card.appendChild(btnRow);
+    overlay.appendChild(card);
+    this.container.appendChild(overlay);
+  }
+
+  private showObstacleHint(): void {
+    const overlay = document.createElement('div');
+    overlay.className = 'obstacle-hint-modal';
+    overlay.style.cssText = `
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); display: flex; align-items: center;
+      justify-content: center; z-index: 200; padding: 16px;
+    `;
+
+    const card = document.createElement('div');
+    card.style.cssText = `
+      background: #fff; border-radius: 16px; padding: 24px;
+      max-width: 320px; width: 100%; text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = '本关有障碍物';
+    title.style.cssText = 'margin: 0 0 12px; color: #6B4F4F; font-size: 18px;';
+    card.appendChild(title);
+
+    const hasIce = this.level.obstacles!.some(o => o.type === 'ice');
+    const hasWood = this.level.obstacles!.some(o => o.type === 'wood');
+
+    const body = document.createElement('div');
+    body.style.cssText = 'color: #666; font-size: 14px; line-height: 1.6; margin-bottom: 16px;';
+
+    let html = '';
+    if (hasWood) {
+      html += '<div style="margin-bottom:8px;"><span style="font-size:24px;">🪵</span> <b>木箱</b>：匹配一次即可消除</div>';
+    }
+    if (hasIce) {
+      html += '<div style="margin-bottom:8px;"><span style="font-size:24px;">🧊</span> <b>冰块</b>：需要匹配两次才能消除</div>';
+    }
+    html += '<div style="margin-top:8px; font-size:12px; color:#999;">在障碍物所在行/列做匹配，即可击中并消除它</div>';
+    body.innerHTML = html;
+    card.appendChild(body);
+
+    const btn = document.createElement('button');
+    btn.textContent = '知道了';
+    btn.style.cssText = `
+      background: #FF8FA3; color: white; border: none;
+      padding: 10px 28px; border-radius: 20px; font-size: 14px;
+      cursor: pointer; font-weight: bold;
+    `;
+    btn.addEventListener('click', () => overlay.remove());
+    card.appendChild(btn);
 
     overlay.appendChild(card);
     this.container.appendChild(overlay);

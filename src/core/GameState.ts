@@ -84,6 +84,10 @@ export class GameState {
     return 1;
   }
 
+  getClearedObstacles(): number {
+    return this.clearedObstacles;
+  }
+
   getCollectedCount(element: ElementType): number {
     return this.collectedElements[element] || 0;
   }
