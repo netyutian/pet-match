@@ -6,3 +6,5 @@ dist/
 .vscode/
 coverage/
 *.local
+.playwright-mcp/
+1.关键页面/
