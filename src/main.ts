@@ -1,11 +1,12 @@
 import { ScreenManager } from './ui/ScreenManager';
 import { LevelSelectScreen } from './ui/LevelSelectScreen';
 import { GameScreen } from './ui/GameScreen';
-import { HomeScreen } from './ui/HomeScreen';
+import { Home3DScreen } from './ui/Home3DScreen';
 import { SaveManager } from './systems/SaveManager';
 import { ResourceSystem } from './systems/ResourceSystem';
 import { HomeSystem } from './systems/HomeSystem';
 import { PetSystem } from './systems/PetSystem';
+import { getLevel } from './core/LevelConfig';
 import type { SaveData, ElementType } from './types';
 import { ROOMS, ELEMENTS, COLORS } from './constants';
 
@@ -131,17 +132,11 @@ class GameApp {
 
     this.screenMgr.register('menu', menu);
 
-    const homeScreen = new HomeScreen(this.home, this.pets, this.resources);
-    this.screenMgr.register('home', homeScreen.getElement());
-
-    const backBtn = document.createElement('button');
-    backBtn.textContent = '返回';
-    backBtn.style.marginTop = '12px';
-    backBtn.addEventListener('click', () => {
+    const homeScreen = new Home3DScreen(this.pets, () => {
       this.persistSave();
       this.screenMgr.show('menu');
     });
-    homeScreen.getElement().appendChild(backBtn);
+    this.screenMgr.register('home', homeScreen.getElement());
   }
 
   private startLevel(levelId: number): void {
@@ -173,6 +168,13 @@ class GameApp {
         if (fragmentPet) {
           this.resources.addFragments(fragmentPet, 1);
           this.pets.addFragments(fragmentPet, 1);
+        }
+
+        const level = getLevel(levelId);
+        if (level && level.goal.type === 'collect' && level.goal.element) {
+          if (!this.pets.hasPet(level.goal.element)) {
+            this.pets.addPet(level.goal.element);
+          }
         }
 
         for (const room of ROOMS) {

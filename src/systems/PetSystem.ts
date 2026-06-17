@@ -113,6 +113,17 @@ export class PetSystem {
     return true;
   }
 
+  addPet(id: string): void {
+    if (this.hasPet(id)) return;
+    this.pets[id] = {
+      id,
+      name: PET_DATA[id]?.species || id,
+      intimacy: 0,
+      unlockedClothes: [],
+      currentClothes: '',
+    };
+  }
+
   getSaveData(): PetSaveData {
     return {
       pets: { ...this.pets },
