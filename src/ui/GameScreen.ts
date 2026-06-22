@@ -4,6 +4,7 @@ import { GameState } from '../core/GameState';
 import { getLevel } from '../core/LevelConfig';
 import { BoardRenderer } from './BoardRenderer';
 import { SoundManager } from '../systems/SoundManager';
+import { BOARD_SIZE } from '../constants';
 import type { Position, LevelConfig } from '../types';
 
 export class GameScreen {
@@ -34,7 +35,7 @@ export class GameScreen {
     this.level = level;
 
     this.container = document.createElement('div');
-    this.container.classList.add('screen', 'active');
+    this.container.classList.add('screen', 'active', 'game-screen');
 
     this.board = new Board();
     const preferredChance = Math.max(0.2, 0.5 - (levelId - 1) * 0.02);
@@ -55,6 +56,7 @@ export class GameScreen {
     this.renderer = new BoardRenderer(boardArea);
     this.renderer.setBoard(this.board);
     this.renderer.setSwapHandler((from, to) => this.handleSwap(from, to));
+    this.renderer.setSpecialTapHandler((pos) => this.handleSpecialTap(pos));
 
     const backBtn = document.createElement('button');
     backBtn.id = 'back-btn';
@@ -103,7 +105,7 @@ export class GameScreen {
     } else if (goal.type === 'score') {
       this.scoreEl.textContent = `目标: ${goal.target}分`;
     } else if (goal.type === 'clear') {
-      this.scoreEl.textContent = `清除: ${this.gameState.getClearedObstacles()}/${goal.target}`;
+      this.scoreEl.textContent = `${this.getObstacleLabel()}: ${this.gameState.getClearedObstacles()}/${goal.target}`;
     } else {
       this.scoreEl.textContent = this.formatGoal();
     }
@@ -121,9 +123,21 @@ export class GameScreen {
       return `${collected}/${goal.target}`;
     }
     if (goal.type === 'clear') {
-      return `清除${goal.target}个障碍`;
+      return `${this.getObstacleLabel()}${goal.target}个`;
     }
     return '';
+  }
+
+  private getObstacleLabel(): string {
+    if (!this.level.obstacles || this.level.obstacles.length === 0) {
+      return '清除';
+    }
+    const types = new Set(this.level.obstacles.map((o) => o.type));
+    if (types.size > 1) {
+      return '清除障碍';
+    }
+    const type = this.level.obstacles[0].type;
+    return type === 'wood' ? '清除木箱' : '清除冰块';
   }
 
   private async handleSwap(from: Position, to: Position): Promise<void> {
@@ -180,22 +194,38 @@ export class GameScreen {
 
     while (MatchEngine.hasMatch(this.board.getGrid())) {
       const matches = MatchEngine.findMatches(this.board.getGrid());
-      const allPositions = matches.flatMap(m => m.positions);
+      // Only 5+ matches spawn the egg/bomb. 4-matches stay as normal eliminations.
+      // Obstacle cells must never be turned into bombs — they should be destroyed normally.
+      const bombSpawns = MatchEngine.findSpecials(this.board.getGrid()).filter(
+        (s) => {
+          if (s.type !== 'bomb') return false;
+          const cell = this.board.getCell(s.position.row, s.position.col);
+          return !cell?.obstacle;
+        }
+      );
+      const bombKeys = new Set(
+        bombSpawns.map((s) => `${s.position.row},${s.position.col}`)
+      );
+
+      const allPositions = matches.flatMap((m) => m.positions);
+      // Cells that will actually be eliminated this round (bomb-spawn cells are kept).
+      const eliminatePositions = allPositions.filter(
+        (p) => !bombKeys.has(`${p.row},${p.col}`)
+      );
 
       // 1. Show elimination animation
       this.sound.playMatch();
-      this.renderer.markEliminating(allPositions);
+      this.renderer.markEliminating(eliminatePositions);
       await this.delay(350);
 
       // 2. Actually eliminate
-      for (const pos of allPositions) {
+      for (const pos of eliminatePositions) {
         const cell = this.board.getCell(pos.row, pos.col);
         if (cell?.obstacle) {
           const destroyed = this.board.hitObstacle(pos.row, pos.col);
           if (destroyed) {
             this.gameState.recordObstacleCleared();
           }
-          // Obstacle still exists after hit (e.g. ice): keep cell in place
           if (!destroyed) {
             continue;
           }
@@ -204,6 +234,45 @@ export class GameScreen {
           targetClearedInChain++;
         }
         this.board.setCell(pos.row, pos.col, null);
+      }
+
+      // 2.3 Hit any obstacle that shares a row or column with a match
+      // (this matches the in-game hint: "match in the obstacle's row/column")
+      const affectedRows = new Set<number>();
+      const affectedCols = new Set<number>();
+      for (const pos of allPositions) {
+        affectedRows.add(pos.row);
+        affectedCols.add(pos.col);
+      }
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          if (affectedRows.has(r) || affectedCols.has(c)) {
+            const cell = this.board.getCell(r, c);
+            if (cell?.obstacle) {
+              const destroyed = this.board.hitObstacle(r, c);
+              if (destroyed) {
+                this.gameState.recordObstacleCleared();
+              }
+            }
+          }
+        }
+      }
+
+      // 2.5 Convert protected 5-match cells into eggs (bombs)
+      for (const sp of bombSpawns) {
+        const cell = this.board.getCell(sp.position.row, sp.position.col);
+        if (cell) {
+          cell.special = 'bomb';
+        }
+      }
+      if (bombSpawns.length > 0) {
+        this.sound.playBigClear();
+        for (const sp of bombSpawns) {
+          this.renderer.showFloatingText(sp.position, '✨ 彩蛋！');
+        }
+        this.renderer.updateFromBoard();
+        this.renderer.markBombSpawn(bombSpawns.map((s) => s.position));
+        await this.delay(500);
       }
 
       // 3. Score and floating text
@@ -241,6 +310,81 @@ export class GameScreen {
 
     this.gameState.addScore(totalScore);
     this.renderer.updateFromBoard();
+  }
+
+  private async handleSpecialTap(pos: Position): Promise<void> {
+    if (this.isAnimating || this.gameState.getStatus() !== 'playing') return;
+    const cell = this.board.getCell(pos.row, pos.col);
+    if (!cell || cell.special !== 'bomb') return;
+
+    this.isAnimating = true;
+    this.resetHintTimer();
+
+    const targetElement = cell.element;
+    const goalElement = this.level.goal.element;
+
+    // Find every same-element cell on the board (including the bomb itself).
+    const positions: Position[] = [];
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        const cc = this.board.getCell(r, c);
+        if (cc && !cc.obstacle && cc.element === targetElement) {
+          positions.push({ row: r, col: c });
+        }
+      }
+    }
+
+    // Detonation flash from the bomb cell
+    this.sound.playBigClear();
+    this.renderer.markBombDetonate(pos);
+    await this.delay(220);
+
+    this.renderer.markEliminating(positions);
+    await this.delay(420);
+
+    let cleared = 0;
+    for (const p of positions) {
+      const c = this.board.getCell(p.row, p.col);
+      if (c && goalElement && c.element === goalElement) {
+        this.gameState.recordMatch(c.element, 1);
+        cleared++;
+      }
+      this.board.setCell(p.row, p.col, null);
+    }
+
+    const bonus = positions.length * 20;
+    this.gameState.addScore(bonus);
+    this.renderer.showFloatingText(pos, `💥 +${bonus}`);
+    if (cleared > 0 && goalElement) {
+      this.renderer.showFloatingText(
+        { row: Math.max(0, pos.row - 1), col: pos.col },
+        `<img src="./assets/avatars/${goalElement}.png" style="width:16px;height:16px;vertical-align:middle;border-radius:3px;"> +${cleared}`
+      );
+    }
+
+    const newPositions = this.board.applyGravity();
+    this.renderer.updateFromBoard();
+    this.renderer.markFalling(newPositions);
+    await this.delay(400);
+    this.renderer.clearAnimations();
+
+    // Cascade any matches the falling triggered.
+    await this.processMatches();
+
+    if (this.gameState.getStatus() === 'playing') {
+      const hint = MatchEngine.findHint(this.board.getGrid());
+      if (!hint) {
+        await this.performShuffle();
+      }
+    }
+
+    this.updateHUD();
+    this.isAnimating = false;
+
+    if (this.gameState.getStatus() !== 'playing') {
+      await this.delay(400);
+      this.showVictoryOrDefeat();
+    }
   }
 
   private showVictoryOrDefeat(): void {

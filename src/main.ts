@@ -124,7 +124,7 @@ class GameApp {
     // Home button (smaller, below start)
     const homeBtn = document.createElement('button');
     homeBtn.className = 'menu-home-btn';
-    homeBtn.textContent = '我的家园';
+    homeBtn.textContent = '动物世界';
     homeBtn.addEventListener('click', () => {
       this.screenMgr.show('home');
     });

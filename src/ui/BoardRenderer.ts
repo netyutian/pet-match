@@ -6,6 +6,7 @@ export class BoardRenderer {
   private container: HTMLElement;
   private board: Board | null = null;
   private swapHandler: ((from: Position, to: Position) => void) | null = null;
+  private specialTapHandler: ((pos: Position) => void) | null = null;
   private gridEl: HTMLElement | null = null;
   private cells: HTMLElement[][] = [];
 
@@ -151,6 +152,15 @@ export class BoardRenderer {
         if (this.isInBounds(targetPos)) {
           this.swapHandler?.(this.dragStartPos, targetPos);
         }
+      } else {
+        // No drag direction → it's a tap. If the tapped cell is a special, fire it.
+        const cell = this.board?.getCell(
+          this.dragStartPos.row,
+          this.dragStartPos.col
+        );
+        if (cell && cell.special !== 'none' && !cell.obstacle) {
+          this.specialTapHandler?.(this.dragStartPos);
+        }
       }
 
       this.dragStartPos = null;
@@ -238,7 +248,7 @@ export class BoardRenderer {
   clearAnimations(): void {
     for (const row of this.cells) {
       for (const el of row) {
-        el.classList.remove('eliminating', 'falling', 'hint');
+        el.classList.remove('eliminating', 'falling', 'hint', 'bomb-spawn', 'bomb-detonate');
       }
     }
   }
@@ -299,6 +309,29 @@ export class BoardRenderer {
     this.swapHandler = handler;
   }
 
+  setSpecialTapHandler(handler: (pos: Position) => void): void {
+    this.specialTapHandler = handler;
+  }
+
+  markBombSpawn(positions: Position[]): void {
+    for (const pos of positions) {
+      const el = this.cells[pos.row]?.[pos.col];
+      if (el) {
+        el.classList.remove('bomb-spawn');
+        // Force reflow so the animation can replay
+        void el.offsetWidth;
+        el.classList.add('bomb-spawn');
+      }
+    }
+  }
+
+  markBombDetonate(pos: Position): void {
+    const el = this.cells[pos.row]?.[pos.col];
+    if (el) {
+      el.classList.add('bomb-detonate');
+    }
+  }
+
   updateFromBoard(): void {
     if (!this.board) return;
 
@@ -313,6 +346,7 @@ export class BoardRenderer {
   }
 
   private renderCell(cellEl: HTMLElement, cell: Cell | null): void {
+    cellEl.classList.remove('special-bomb');
     if (!cell) {
       cellEl.style.backgroundImage = 'none';
       cellEl.textContent = '';
@@ -347,12 +381,16 @@ export class BoardRenderer {
     }
 
     cellEl.style.backgroundImage = `url('./assets/avatars/${cell.element}.png')`;
-    cellEl.style.backgroundSize = '100%';
+    cellEl.style.backgroundSize = '112%';
     cellEl.style.backgroundRepeat = 'no-repeat';
     cellEl.style.backgroundPosition = 'center';
     cellEl.style.backgroundColor = '#fff';
     cellEl.textContent = '';
     cellEl.style.borderColor = this.getBorderColorForSpecial(cell.special) ?? BORDER_COLORS[cell.element];
+
+    if (cell.special === 'bomb') {
+      cellEl.classList.add('special-bomb');
+    }
   }
 
   private getBorderColorForSpecial(special: SpecialType): string | null {
