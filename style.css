@@ -391,8 +391,8 @@ h1 {
 }
 
 @keyframes floatUp {
-  0% { transform: translateY(0) scale(1); opacity: 1; }
-  100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+  0% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateX(-50%) translateY(-50px) scale(1.2); opacity: 0; }
 }
 
 /* Responsive */

@@ -14,6 +14,7 @@ export class BoardRenderer {
   private dragStartPos: Position | null = null;
   private dragStartX = 0;
   private dragStartY = 0;
+  private dragThreshold = 24;
   private hintedCell: HTMLElement | null = null;
 
   constructor(container: HTMLElement) {
@@ -83,6 +84,7 @@ export class BoardRenderer {
       this.dragStartPos = pos;
       this.dragStartX = point.x;
       this.dragStartY = point.y;
+      this.dragThreshold = this.getSwipeThreshold();
 
       // Slight visual feedback on pressed cell
       cell.style.transform = 'scale(0.92)';
@@ -199,8 +201,7 @@ export class BoardRenderer {
   }
 
   private resolveDirection(dx: number, dy: number): { dr: number; dc: number } | null {
-    const threshold = this.getSwipeThreshold();
-    if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) return null;
+    if (Math.abs(dx) < this.dragThreshold && Math.abs(dy) < this.dragThreshold) return null;
 
     if (Math.abs(dx) > Math.abs(dy)) {
       return dx > 0 ? { dr: 0, dc: 1 } : { dr: 0, dc: -1 };
