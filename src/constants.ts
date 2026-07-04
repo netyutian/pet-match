@@ -1,4 +1,4 @@
-import type { ElementType, PetData, FurnitureItem } from './types';
+import type { ElementType, ObstacleType, PetData, FurnitureItem } from './types';
 
 export const BOARD_SIZE = 8;
 
@@ -105,6 +105,16 @@ export const FURNITURE_DATA: FurnitureItem[] = [
   { id: 'bed', name: '软床', price: 60, roomType: 'bedroom', category: '床' },
   { id: 'nightstand', name: '床头柜', price: 35, roomType: 'bedroom', category: '柜子' },
 ];
+
+export const OBSTACLE_EMOJI: Record<ObstacleType, string> = {
+  wood: '🐤',
+  ice: '🐥',
+};
+
+export const OBSTACLE_NAMES: Record<ObstacleType, string> = {
+  wood: '小鸡',
+  ice: '小鸭',
+};
 
 export const ROOMS = [
   { id: 'living', name: '客厅', unlockLevel: 1 },

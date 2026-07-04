@@ -4,7 +4,7 @@ import { GameState } from '../core/GameState';
 import { getLevel } from '../core/LevelConfig';
 import { BoardRenderer } from './BoardRenderer';
 import { SoundManager } from '../systems/SoundManager';
-import { BOARD_SIZE } from '../constants';
+import { BOARD_SIZE, OBSTACLE_NAMES } from '../constants';
 import type { Position, LevelConfig } from '../types';
 
 export class GameScreen {
@@ -134,10 +134,10 @@ export class GameScreen {
     }
     const types = new Set(this.level.obstacles.map((o) => o.type));
     if (types.size > 1) {
-      return '清除障碍';
+      return '解救小动物';
     }
     const type = this.level.obstacles[0].type;
-    return type === 'wood' ? '清除木箱' : '清除冰块';
+    return '解救' + OBSTACLE_NAMES[type];
   }
 
   private async handleSwap(from: Position, to: Position): Promise<void> {
@@ -465,7 +465,7 @@ export class GameScreen {
     `;
 
     const title = document.createElement('h3');
-    title.textContent = '本关有障碍物';
+    title.textContent = '本关有小动物被困';
     title.style.cssText = 'margin: 0 0 12px; color: #6B4F4F; font-size: 18px;';
     card.appendChild(title);
 
@@ -477,12 +477,12 @@ export class GameScreen {
 
     let html = '';
     if (hasWood) {
-      html += '<div style="margin-bottom:8px;"><span style="font-size:24px;">🪵</span> <b>木箱</b>：匹配一次即可消除</div>';
+      html += '<div style="margin-bottom:8px;"><span style="font-size:24px;">🐤</span> <b>小鸡</b>：匹配一次即可解救</div>';
     }
     if (hasIce) {
-      html += '<div style="margin-bottom:8px;"><span style="font-size:24px;">🧊</span> <b>冰块</b>：需要匹配两次才能消除</div>';
+      html += '<div style="margin-bottom:8px;"><span style="font-size:24px;">🐥</span> <b>小鸭</b>：需要匹配两次才能解救</div>';
     }
-    html += '<div style="margin-top:8px; font-size:12px; color:#999;">在障碍物所在行/列做匹配，即可击中并消除它</div>';
+    html += '<div style="margin-top:8px; font-size:12px; color:#999;">在小动物所在行/列做匹配，即可解救它</div>';
     body.innerHTML = html;
     card.appendChild(body);
 

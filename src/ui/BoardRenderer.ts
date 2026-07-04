@@ -1,6 +1,6 @@
 import type { Board } from '../core/Board';
 import type { Position, Cell, SpecialType } from '../types';
-import { BOARD_SIZE, BORDER_COLORS } from '../constants';
+import { BOARD_SIZE, BORDER_COLORS, OBSTACLE_EMOJI } from '../constants';
 
 export class BoardRenderer {
   private container: HTMLElement;
@@ -372,13 +372,13 @@ export class BoardRenderer {
         cellEl.style.backgroundColor = '#8B4513';
         cellEl.style.borderRadius = '8px';
         cellEl.style.border = '2px solid #A0522D';
-        cellEl.textContent = '🪵';
+        cellEl.textContent = OBSTACLE_EMOJI[cell.obstacle];
         cellEl.style.fontSize = '28px';
       } else if (cell.obstacle === 'ice') {
         cellEl.style.backgroundColor = 'rgba(173, 216, 230, 0.6)';
         cellEl.style.border = '2px solid #87CEEB';
         cellEl.style.borderRadius = '12px';
-        cellEl.textContent = '🧊';
+        cellEl.textContent = OBSTACLE_EMOJI[cell.obstacle];
         cellEl.style.fontSize = '28px';
       }
       return;

@@ -240,7 +240,7 @@ describe('Level 1-20 balance simulation', () => {
           ? `${level.goal.target}分`
           : level.goal.type === 'collect'
           ? `${level.goal.target} ${level.goal.element}`
-          : `${level.goal.target} 障碍`;
+          : `${level.goal.target} 解救`;
 
       report.push({
         level: levelId,
