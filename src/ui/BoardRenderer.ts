@@ -30,8 +30,6 @@ export class BoardRenderer {
     this.gridEl.classList.add('board-grid');
     this.gridEl.style.display = 'grid';
     this.gridEl.style.gridTemplateColumns = `repeat(${BOARD_SIZE}, 1fr)`;
-    this.gridEl.style.gap = '2px';
-    this.gridEl.style.maxWidth = '400px';
     this.gridEl.style.width = '100%';
     this.gridEl.style.aspectRatio = '1';
     this.gridEl.style.touchAction = 'none'; // prevent browser scroll
@@ -61,7 +59,6 @@ export class BoardRenderer {
     cellEl.classList.add('board-cell');
     cellEl.dataset.row = String(row);
     cellEl.dataset.col = String(col);
-    cellEl.style.borderRadius = '12px';
     cellEl.style.display = 'flex';
     cellEl.style.alignItems = 'center';
     cellEl.style.justifyContent = 'center';
@@ -195,9 +192,15 @@ export class BoardRenderer {
     return { row, col };
   }
 
+  private getSwipeThreshold(): number {
+    const cell = this.cells[0]?.[0];
+    if (!cell) return 24;
+    return cell.getBoundingClientRect().width * 0.3;
+  }
+
   private resolveDirection(dx: number, dy: number): { dr: number; dc: number } | null {
-    const THRESHOLD = 24; // px
-    if (Math.abs(dx) < THRESHOLD && Math.abs(dy) < THRESHOLD) return null;
+    const threshold = this.getSwipeThreshold();
+    if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) return null;
 
     if (Math.abs(dx) > Math.abs(dy)) {
       return dx > 0 ? { dr: 0, dc: 1 } : { dr: 0, dc: -1 };
@@ -298,7 +301,7 @@ export class BoardRenderer {
 
     const rect = cellEl.getBoundingClientRect();
     const gridRect = this.gridEl!.getBoundingClientRect();
-    floatEl.style.left = `${rect.left - gridRect.left + rect.width / 2 - 20}px`;
+    floatEl.style.left = `${rect.left - gridRect.left + rect.width / 2}px`;
     floatEl.style.top = `${rect.top - gridRect.top}px`;
 
     this.gridEl!.appendChild(floatEl);
