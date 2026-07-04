@@ -460,7 +460,7 @@ export class GameScreen {
     const card = document.createElement('div');
     card.style.cssText = `
       background: #fff; border-radius: 16px; padding: 24px;
-      max-width: 320px; width: 100%; text-align: center;
+      width: 100%; text-align: center;
       box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     `;
 
