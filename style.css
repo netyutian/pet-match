@@ -397,17 +397,9 @@ h1 {
 
 /* Responsive */
 @media (max-height: 600px) {
-  .board-container {
-    padding: 4px 0;
-  }
-  .game-hud {
-    padding: 8px;
-    margin-bottom: 8px;
-  }
-  h1 {
-    font-size: 22px;
-    margin-bottom: 12px;
-  }
+  .board-container { padding: 4px 0; }
+  .game-hud { padding: var(--hud-padding); margin-bottom: 8px; }
+  h1 { font-size: calc(var(--font-base) * 1.5); margin-bottom: 12px; }
 }
 
 @media (min-width: 500px) {
