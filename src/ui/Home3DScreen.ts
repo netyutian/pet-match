@@ -103,8 +103,8 @@ export class Home3DScreen {
   }
 
   private init3D(): void {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const w = this.container.clientWidth;
+    const h = this.container.clientHeight;
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xBDE0FE);
@@ -424,8 +424,8 @@ export class Home3DScreen {
   }
 
   private onResize(): void {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const w = this.container.clientWidth;
+    const h = this.container.clientHeight;
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
