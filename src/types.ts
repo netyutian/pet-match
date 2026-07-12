@@ -86,4 +86,6 @@ export interface SaveData {
   pets: Record<string, PetInstance>;
   rooms: Record<string, RoomData>;
   unlockedFurniture: string[];
+  lives: number;
+  lastLifeRecoverTime: number;
 }

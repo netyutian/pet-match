@@ -26,6 +26,8 @@ class GameApp {
     this.resources = new ResourceSystem({
       coins: this.saveData.coins,
       fragments: this.saveData.fragments,
+      lives: this.saveData.lives,
+      lastLifeRecoverTime: this.saveData.lastLifeRecoverTime,
     });
 
     this.pets = new PetSystem({
@@ -49,6 +51,13 @@ class GameApp {
     );
     this.screenMgr.register('levelSelect', this.levelSelect.getElement());
 
+    // Level select lives display
+    const levelSelectEl = this.levelSelect.getElement();
+    const levelLives = document.createElement('div');
+    levelLives.className = 'lives-display level-lives-display';
+    levelSelectEl.appendChild(levelLives);
+
+    this.updateLivesDisplay();
     this.screenMgr.show('menu');
   }
 
@@ -82,12 +91,19 @@ class GameApp {
       },
       rooms,
       unlockedFurniture: [],
+      lives: 5,
+      lastLifeRecoverTime: Date.now(),
     };
   }
 
   private setupScreens(): void {
     const menu = document.createElement('div');
     menu.classList.add('screen', 'active', 'menu-screen');
+
+    // Lives display
+    const menuLives = document.createElement('div');
+    menuLives.className = 'menu-lives-display';
+    menu.appendChild(menuLives);
 
     // Title
     const title = document.createElement('h1');
@@ -107,6 +123,8 @@ class GameApp {
       const img = document.createElement('img');
       img.src = `./assets/avatars/${element}.png`;
       img.alt = element;
+      img.loading = 'lazy';
+      img.decoding = 'async';
       cell.appendChild(img);
       grid.appendChild(cell);
     }
@@ -142,6 +160,11 @@ class GameApp {
   private startLevel(levelId: number): void {
     if (levelId <= 0) {
       this.screenMgr.show('menu');
+      return;
+    }
+
+    if (this.resources.getLives() <= 0) {
+      this.showNoLivesModal();
       return;
     }
 
@@ -182,10 +205,13 @@ class GameApp {
             this.home.unlockRoom(room.id, this.saveData.currentLevel);
           }
         }
+      } else {
+        this.resources.useLife();
       }
 
       this.persistSave();
       this.levelSelect.update(this.saveData.currentLevel, this.saveData.levelStars);
+      this.updateLivesDisplay();
 
       if (result.won && result.next) {
         const nextLevel = levelId + 1;
@@ -201,6 +227,49 @@ class GameApp {
     this.screenMgr.show('game');
   }
 
+  private showNoLivesModal(): void {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal';
+    overlay.style.zIndex = '300';
+
+    const card = document.createElement('div');
+    const title = document.createElement('h3');
+    title.textContent = '生命值不足';
+    title.style.margin = '0 0 12px';
+    card.appendChild(title);
+
+    const body = document.createElement('p');
+    const nextMinutes = Math.ceil(this.resources.getNextLifeTime() / 60000);
+    body.textContent = `生命值已耗尽，${nextMinutes} 分钟后恢复 1 点。`;
+    body.style.color = '#666';
+    body.style.margin = '0 0 16px';
+    card.appendChild(body);
+
+    const btn = document.createElement('button');
+    btn.textContent = '知道了';
+    btn.addEventListener('click', () => overlay.remove());
+    card.appendChild(btn);
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+  }
+
+  private updateLivesDisplay(): void {
+    const lives = this.resources.getLives();
+    const maxLives = this.resources.getMaxLives();
+    const text = '❤️'.repeat(lives) + '🖤'.repeat(maxLives - lives);
+
+    const menuDisplay = document.querySelector('.menu-lives-display');
+    if (menuDisplay) {
+      menuDisplay.textContent = text;
+    }
+
+    const levelDisplay = document.querySelector('.level-lives-display');
+    if (levelDisplay) {
+      levelDisplay.textContent = text;
+    }
+  }
+
   private persistSave(): void {
     const resourceData = this.resources.getSaveData();
     const petData = this.pets.getSaveData();
@@ -208,6 +277,8 @@ class GameApp {
 
     this.saveData.coins = resourceData.coins;
     this.saveData.fragments = resourceData.fragments;
+    this.saveData.lives = resourceData.lives;
+    this.saveData.lastLifeRecoverTime = resourceData.lastLifeRecoverTime;
     this.saveData.pets = petData.pets;
     this.saveData.unlockedPets = Object.keys(petData.pets);
     this.saveData.rooms = homeData.rooms;

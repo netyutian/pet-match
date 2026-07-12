@@ -103,7 +103,10 @@ body {
 
 .screen {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: none;
   flex-direction: column;
   align-items: center;
@@ -317,7 +320,7 @@ h1 {
   z-index: 5;
 }
 
-/* Victory modal */
+/* ===== Victory Modal Animations ===== */
 .victory-modal {
   position: fixed;
   inset: 0;
@@ -328,9 +331,10 @@ h1 {
   justify-content: center;
   z-index: 200;
   animation: fadeIn 0.3s ease;
+  overflow: hidden;
 }
 
-.victory-modal > div {
+.victory-modal > .victory-card {
   background: #FFF8F0;
   padding: 32px 24px;
   border-radius: 24px;
@@ -338,6 +342,8 @@ h1 {
   max-width: var(--modal-max-width);
   width: 90%;
   animation: popIn 0.4s ease;
+  position: relative;
+  z-index: 2;
 }
 
 @keyframes fadeIn {
@@ -351,9 +357,116 @@ h1 {
   100% { transform: scale(1); opacity: 1; }
 }
 
+.victory-title {
+  font-size: 26px;
+  color: #6B4F4F;
+  margin: 0 0 8px;
+  animation: titleBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+}
+
+@keyframes titleBounce {
+  0% { transform: scale(0.3) translateY(20px); opacity: 0; }
+  60% { transform: scale(1.15) translateY(-5px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
 .victory-stars {
   font-size: 48px;
   margin: 16px 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.victory-star {
+  display: inline-block;
+  opacity: 0;
+  transform: scale(0);
+  animation: starAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.victory-star:nth-child(1) { animation-delay: 0.6s; }
+.victory-star:nth-child(2) { animation-delay: 0.9s; }
+.victory-star:nth-child(3) { animation-delay: 1.2s; }
+
+@keyframes starAppear {
+  0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+  60% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.victory-score {
+  color: #888;
+  margin-bottom: 16px;
+  animation: fadeInUp 0.5s ease 1.4s both;
+}
+
+@keyframes fadeInUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.victory-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  animation: fadeInUp 0.5s ease 1.6s both;
+}
+
+/* Confetti */
+.confetti-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  width: 8px;
+  height: 16px;
+  top: -20px;
+  animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0.3; }
+}
+
+/* Firework burst */
+.firework {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  animation: fireworkBurst 0.8s ease-out forwards;
+}
+
+@keyframes fireworkBurst {
+  0% { transform: translate(0, 0); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)); opacity: 0; }
+}
+
+/* Victory ring pulse behind card */
+.victory-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 215, 0, 0.4);
+  animation: ringExpand 1.5s ease-out forwards;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes ringExpand {
+  0% { width: 100px; height: 100px; opacity: 1; }
+  100% { width: 500px; height: 500px; opacity: 0; }
 }
 
 /* Hint highlight */
@@ -369,12 +482,12 @@ h1 {
 
 /* Target animal highlight */
 @keyframes targetGlow {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 2px rgba(255, 200, 100, 0.4); }
-  50% { transform: scale(1.06); box-shadow: 0 0 0 5px rgba(255, 200, 100, 0.8); }
+  0%, 100% { box-shadow: 0 0 0 2px rgba(255, 200, 100, 0.25); }
+  50% { box-shadow: 0 0 0 4px rgba(255, 200, 100, 0.45); }
 }
 
 .board-cell.target {
-  animation: targetGlow 1.2s ease infinite;
+  animation: targetGlow 2s ease infinite;
   z-index: 2;
 }
 
@@ -407,11 +520,31 @@ h1 {
     display: flex;
     justify-content: center;
   }
+  /* Keep screens full-bleed so their background covers the viewport on desktop */
   .screen {
-    max-width: 480px;
+    position: absolute;
+    inset: 0;
+    max-width: none;
     width: 100%;
+    margin: 0;
+    left: auto;
+    right: auto;
+    transform: none;
   }
 }
+
+@media (min-width: 769px) {
+  .screen {
+    max-width: none;
+  }
+}
+
+@media (min-width: 1025px) {
+  .screen {
+    max-width: none;
+  }
+}
+
 
 /* Shuffle overlay */
 .shuffle-overlay {
@@ -425,7 +558,33 @@ h1 {
   100% { opacity: 0; }
 }
 
-/* ===== Home screen (Zootopia animal world) ===== */
+/* ===== Lives Display ===== */
+.lives-display {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 18px;
+  letter-spacing: 2px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 6px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+.menu-lives-display {
+  position: static;
+  margin-bottom: 8px;
+  align-self: flex-end;
+}
+
+.level-lives-display {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+}
+
 .home-screen {
   background: linear-gradient(180deg, #BDE0FE 0%, #E8F4FF 40%, #F5F0E1 100%);
 }
@@ -661,10 +820,34 @@ h1 {
 /* Level select screen */
 .level-select-screen {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   overflow-y: auto;
   padding: 0;
   background: none;
+}
+
+@media (min-width: 500px) {
+  .level-select-screen {
+    left: 0;
+    right: 0;
+    transform: none;
+    max-width: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .level-select-screen {
+    max-width: none;
+  }
+}
+
+@media (min-width: 1025px) {
+  .level-select-screen {
+    max-width: none;
+  }
 }
 
 .sky-bg {
@@ -858,11 +1041,10 @@ h1 {
 
 @media (min-width: 500px) {
   .ground-layer {
-    left: 50%;
-    right: auto;
-    width: 100%;
-    max-width: 480px;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
+    transform: none;
+    max-width: none;
   }
 }
 
@@ -917,9 +1099,178 @@ h1 {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-@media (max-width: 375px) {
-  .flower:nth-child(n+9) {
-    display: none;
-  }
+/* ===== Victory Modal Enhanced Animations ===== */
+.victory-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.4s ease;
+  overflow: hidden;
+}
+
+.victory-modal > .victory-card {
+  background: linear-gradient(180deg, #FFF8F0 0%, #FFF0E6 100%);
+  padding: 36px 28px;
+  border-radius: 24px;
+  text-align: center;
+  max-width: var(--modal-max-width);
+  width: 90%;
+  animation: victoryPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 0 0 4px rgba(255, 215, 0, 0.3);
+  position: relative;
+  z-index: 10;
+}
+
+@keyframes victoryPop {
+  0% { transform: scale(0.3) translateY(40px); opacity: 0; }
+  60% { transform: scale(1.08) translateY(-8px); opacity: 1; }
+  80% { transform: scale(0.96) translateY(2px); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.victory-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #FF6B6B;
+  margin: 0 0 16px;
+  animation: titleBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+  text-shadow: 2px 2px 0px rgba(255, 140, 0, 0.2);
+}
+
+@keyframes titleBounce {
+  0% { transform: scale(0) rotate(-8deg); opacity: 0; }
+  60% { transform: scale(1.15) rotate(3deg); opacity: 1; }
+  80% { transform: scale(0.92) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.victory-stars-wrap {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0 20px;
+  height: 56px;
+  align-items: center;
+}
+
+.victory-star {
+  font-size: 40px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(255, 180, 0, 0.4));
+  transform-origin: center bottom;
+}
+
+.victory-star.empty {
+  opacity: 0.25;
+  filter: grayscale(0.8);
+}
+
+.victory-star.earned {
+  animation: starReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes starReveal {
+  0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+  60% { transform: scale(1.4) rotate(10deg); opacity: 1; }
+  80% { transform: scale(0.9) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.victory-star.earned::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.5) 0%, transparent 70%);
+  animation: starGlow 1s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes starGlow {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+.victory-score {
+  font-size: 18px;
+  color: #888;
+  margin-bottom: 24px;
+  font-weight: 600;
+  animation: fadeSlideUp 0.5s ease 0.8s both;
+}
+
+@keyframes fadeSlideUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.victory-btn-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  animation: fadeSlideUp 0.5s ease 1s both;
+}
+
+/* Confetti */
+.confetti-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+}
+
+.confetti {
+  position: absolute;
+  width: 8px;
+  height: 14px;
+  top: -20px;
+  animation: confettiFall linear forwards;
+  opacity: 0.9;
+}
+
+.confetti:nth-child(odd) {
+  width: 6px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.confetti:nth-child(3n) {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  80% { opacity: 0.9; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* Light rays behind modal */
+.victory-modal::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.25) 0%, transparent 60%);
+  animation: lightPulse 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes lightPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
 }
 

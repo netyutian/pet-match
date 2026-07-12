@@ -1,6 +1,7 @@
 import type { Board } from '../core/Board';
 import type { Position, Cell, SpecialType } from '../types';
-import { BOARD_SIZE, BORDER_COLORS, OBSTACLE_EMOJI } from '../constants';
+import { BOARD_SIZE, BORDER_COLORS, OBSTACLE_EMOJI, COLORS } from '../constants';
+import { setBackgroundWithFallback, getAvatarUrl } from '../utils/ImageLoader';
 
 export class BoardRenderer {
   private container: HTMLElement;
@@ -66,6 +67,7 @@ export class BoardRenderer {
     cellEl.style.cursor = 'grab';
     cellEl.style.userSelect = 'none';
     cellEl.style.transition = 'transform 0.15s ease';
+    cellEl.style.position = 'relative';
     cellEl.style.setProperty('-webkit-tap-highlight-color', 'transparent');
 
     return cellEl;
@@ -88,6 +90,9 @@ export class BoardRenderer {
 
       // Slight visual feedback on pressed cell
       cell.style.transform = 'scale(0.92)';
+      if ('changedTouches' in e) {
+        e.preventDefault();
+      }
     };
 
     this.gridEl!.addEventListener('mousedown', startHandler);
@@ -299,13 +304,10 @@ export class BoardRenderer {
     const floatEl = document.createElement('div');
     floatEl.className = 'floating-text';
     floatEl.innerHTML = text;
+    floatEl.style.left = '50%';
+    floatEl.style.top = '0';
 
-    const rect = cellEl.getBoundingClientRect();
-    const gridRect = this.gridEl!.getBoundingClientRect();
-    floatEl.style.left = `${rect.left - gridRect.left + rect.width / 2}px`;
-    floatEl.style.top = `${rect.top - gridRect.top}px`;
-
-    this.gridEl!.appendChild(floatEl);
+    cellEl.appendChild(floatEl);
     setTimeout(() => floatEl.remove(), 800);
   }
 
@@ -384,11 +386,14 @@ export class BoardRenderer {
       return;
     }
 
-    cellEl.style.backgroundImage = `url('./assets/avatars/${cell.element}.png')`;
+    setBackgroundWithFallback(
+      cellEl,
+      getAvatarUrl(cell.element),
+      COLORS[cell.element as keyof typeof COLORS]
+    );
     cellEl.style.backgroundSize = '112%';
     cellEl.style.backgroundRepeat = 'no-repeat';
     cellEl.style.backgroundPosition = 'center';
-    cellEl.style.backgroundColor = '#fff';
     cellEl.textContent = '';
     cellEl.style.borderColor = this.getBorderColorForSpecial(cell.special) ?? BORDER_COLORS[cell.element];
 

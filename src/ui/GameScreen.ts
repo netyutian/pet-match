@@ -5,6 +5,7 @@ import { getLevel } from '../core/LevelConfig';
 import { BoardRenderer } from './BoardRenderer';
 import { SoundManager } from '../systems/SoundManager';
 import { BOARD_SIZE, OBSTACLE_NAMES } from '../constants';
+import { preloadAvatars } from '../utils/ImageLoader';
 import type { Position, LevelConfig } from '../types';
 
 export class GameScreen {
@@ -57,6 +58,26 @@ export class GameScreen {
     this.renderer.setBoard(this.board);
     this.renderer.setSwapHandler((from, to) => this.handleSwap(from, to));
     this.renderer.setSpecialTapHandler((pos) => this.handleSpecialTap(pos));
+
+    // Preload active avatar images
+    const presentElements = new Set<string>();
+    const targetPositions: Position[] = [];
+    const grid = this.board.getGrid();
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        const cell = grid[r][c];
+        if (cell && !cell.obstacle) {
+          presentElements.add(cell.element);
+          if (level.goal.type === 'collect' && level.goal.element && cell.element === level.goal.element) {
+            targetPositions.push({ row: r, col: c });
+          }
+        }
+      }
+    }
+    preloadAvatars(Array.from(presentElements));
+    if (targetPositions.length > 0) {
+      this.renderer.markTarget(targetPositions);
+    }
 
     const backBtn = document.createElement('button');
     backBtn.id = 'back-btn';
@@ -166,23 +187,26 @@ export class GameScreen {
     }
 
     this.isAnimating = true;
-    this.gameState.useMove();
-    await this.processMatches();
+    try {
+      this.gameState.useMove();
+      await this.processMatches();
 
-    // Deadlock shuffle: if no valid moves, reshuffle automatically
-    if (this.gameState.getStatus() === 'playing') {
-      const hint = MatchEngine.findHint(this.board.getGrid());
-      if (!hint) {
-        await this.performShuffle();
+      // Deadlock shuffle: if no valid moves, reshuffle automatically
+      if (this.gameState.getStatus() === 'playing') {
+        const hint = MatchEngine.findHint(this.board.getGrid());
+        if (!hint) {
+          await this.performShuffle();
+        }
       }
-    }
 
-    this.updateHUD();
-    this.isAnimating = false;
+      this.updateHUD();
 
-    if (this.gameState.getStatus() !== 'playing') {
-      await this.delay(400);
-      this.showVictoryOrDefeat();
+      if (this.gameState.getStatus() !== 'playing') {
+        await this.delay(400);
+        this.showVictoryOrDefeat();
+      }
+    } finally {
+      this.isAnimating = false;
     }
   }
 
@@ -320,70 +344,73 @@ export class GameScreen {
     this.isAnimating = true;
     this.resetHintTimer();
 
-    const targetElement = cell.element;
-    const goalElement = this.level.goal.element;
+    try {
+      const targetElement = cell.element;
+      const goalElement = this.level.goal.element;
 
-    // Find every same-element cell on the board (including the bomb itself).
-    const positions: Position[] = [];
-    for (let r = 0; r < BOARD_SIZE; r++) {
-      for (let c = 0; c < BOARD_SIZE; c++) {
-        const cc = this.board.getCell(r, c);
-        if (cc && !cc.obstacle && cc.element === targetElement) {
-          positions.push({ row: r, col: c });
+      // Find every same-element cell on the board (including the bomb itself).
+      const positions: Position[] = [];
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          const cc = this.board.getCell(r, c);
+          if (cc && !cc.obstacle && cc.element === targetElement) {
+            positions.push({ row: r, col: c });
+          }
         }
       }
-    }
 
-    // Detonation flash from the bomb cell
-    this.sound.playBigClear();
-    this.renderer.markBombDetonate(pos);
-    await this.delay(220);
+      // Detonation flash from the bomb cell
+      this.sound.playBigClear();
+      this.renderer.markBombDetonate(pos);
+      await this.delay(220);
 
-    this.renderer.markEliminating(positions);
-    await this.delay(420);
+      this.renderer.markEliminating(positions);
+      await this.delay(420);
 
-    let cleared = 0;
-    for (const p of positions) {
-      const c = this.board.getCell(p.row, p.col);
-      if (c && goalElement && c.element === goalElement) {
-        this.gameState.recordMatch(c.element, 1);
-        cleared++;
+      let cleared = 0;
+      for (const p of positions) {
+        const c = this.board.getCell(p.row, p.col);
+        if (c && goalElement && c.element === goalElement) {
+          this.gameState.recordMatch(c.element, 1);
+          cleared++;
+        }
+        this.board.setCell(p.row, p.col, null);
       }
-      this.board.setCell(p.row, p.col, null);
-    }
 
-    const bonus = positions.length * 20;
-    this.gameState.addScore(bonus);
-    this.renderer.showFloatingText(pos, `💥 +${bonus}`);
-    if (cleared > 0 && goalElement) {
-      this.renderer.showFloatingText(
-        { row: Math.max(0, pos.row - 1), col: pos.col },
-        `<img src="./assets/avatars/${goalElement}.png" style="width:16px;height:16px;vertical-align:middle;border-radius:3px;"> +${cleared}`
-      );
-    }
-
-    const newPositions = this.board.applyGravity();
-    this.renderer.updateFromBoard();
-    this.renderer.markFalling(newPositions);
-    await this.delay(400);
-    this.renderer.clearAnimations();
-
-    // Cascade any matches the falling triggered.
-    await this.processMatches();
-
-    if (this.gameState.getStatus() === 'playing') {
-      const hint = MatchEngine.findHint(this.board.getGrid());
-      if (!hint) {
-        await this.performShuffle();
+      const bonus = positions.length * 20;
+      this.gameState.addScore(bonus);
+      this.renderer.showFloatingText(pos, `💥 +${bonus}`);
+      if (cleared > 0 && goalElement) {
+        this.renderer.showFloatingText(
+          { row: Math.max(0, pos.row - 1), col: pos.col },
+          `<img src="./assets/avatars/${goalElement}.png" style="width:16px;height:16px;vertical-align:middle;border-radius:3px;"> +${cleared}`
+        );
       }
-    }
 
-    this.updateHUD();
-    this.isAnimating = false;
-
-    if (this.gameState.getStatus() !== 'playing') {
+      const newPositions = this.board.applyGravity();
+      this.renderer.updateFromBoard();
+      this.renderer.markFalling(newPositions);
       await this.delay(400);
-      this.showVictoryOrDefeat();
+      this.renderer.clearAnimations();
+
+      // Cascade any matches the falling triggered.
+      await this.processMatches();
+
+      if (this.gameState.getStatus() === 'playing') {
+        const hint = MatchEngine.findHint(this.board.getGrid());
+        if (!hint) {
+          await this.performShuffle();
+        }
+      }
+
+      this.updateHUD();
+
+      if (this.gameState.getStatus() !== 'playing') {
+        await this.delay(400);
+        this.showVictoryOrDefeat();
+      }
+    } finally {
+      this.isAnimating = false;
     }
   }
 
@@ -403,29 +430,51 @@ export class GameScreen {
     const overlay = document.createElement('div');
     overlay.className = 'victory-modal';
 
+    // Confetti
+    const confettiCount = 40;
+    const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#FF8FA3', '#45B7D1', '#96CEB4', '#FFEAA7'];
+    for (let i = 0; i < confettiCount; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti';
+      piece.style.left = `${Math.random() * 100}%`;
+      piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDuration = `${2 + Math.random() * 2}s`;
+      piece.style.animationDelay = `${Math.random() * 1.5}s`;
+      overlay.appendChild(piece);
+    }
+
     const card = document.createElement('div');
+    card.className = 'victory-card';
 
     const title = document.createElement('h2');
+    title.className = 'victory-title';
     title.textContent = '恭喜通关！';
-    title.style.color = '#6B4F4F';
-    title.style.margin = '0 0 8px';
     card.appendChild(title);
 
-    const starDisplay = document.createElement('div');
-    starDisplay.className = 'victory-stars';
-    starDisplay.textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
-    card.appendChild(starDisplay);
+    const starWrap = document.createElement('div');
+    starWrap.className = 'victory-stars-wrap';
+    for (let i = 0; i < 3; i++) {
+      const star = document.createElement('span');
+      star.className = 'victory-star';
+      if (i < stars) {
+        star.classList.add('earned');
+        star.style.animationDelay = `${0.5 + i * 0.2}s`;
+        star.textContent = '⭐';
+      } else {
+        star.classList.add('empty');
+        star.textContent = '☆';
+      }
+      starWrap.appendChild(star);
+    }
+    card.appendChild(starWrap);
 
     const scoreInfo = document.createElement('div');
+    scoreInfo.className = 'victory-score';
     scoreInfo.textContent = `得分: ${this.gameState.getScore()}`;
-    scoreInfo.style.color = '#888';
-    scoreInfo.style.marginBottom = '16px';
     card.appendChild(scoreInfo);
 
     const btnRow = document.createElement('div');
-    btnRow.style.display = 'flex';
-    btnRow.style.gap = '12px';
-    btnRow.style.justifyContent = 'center';
+    btnRow.className = 'victory-btn-row';
 
     const nextBtn = document.createElement('button');
     nextBtn.textContent = '下一关';
